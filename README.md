@@ -4,12 +4,12 @@ simple CSV importer to update flat topic compositions
 
 limitations:
 
- * delimiter: | (default)
+ * delimiter: ```|``` (default)
  * data type: Text
 
 ## Requirements
 
-  * [DeepaMehta 4](http://github.com/jri/deepamehta) 4.1-SNAPSHOT
+ * [DeepaMehta 4](http://github.com/jri/deepamehta) 4.1-SNAPSHOT
 
 ## Usage
 
@@ -32,9 +32,9 @@ two         | check this too  | and with another content
 
 upload the file with the the *Import CSV* action of the *Note* topic type
 
-### update Note topics
+### update topics
 
-to update all instances of a topic type just import the changed CSV file again,
+to update all instances of a topic type just import the modified CSV file again,
 but be aware of these rules:
 
  * existing topic is updated by a URI match

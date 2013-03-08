@@ -30,7 +30,7 @@ one         | check this      | with content
 two         | check this too  | and with another content
 ```
 
-upload the file with the the *Import CSV* action of the *Note* topic type
+upload the file with the *Import CSV* action of the *Note* topic type
 
 ### update topics
 

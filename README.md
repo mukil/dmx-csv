@@ -10,6 +10,7 @@ limitations:
 ## Requirements
 
  * [DeepaMehta 4](http://github.com/jri/deepamehta) 4.1-SNAPSHOT
+ * Write access to dm4.filerepo.path (see DM4 config file)
 
 ## Usage
 
@@ -20,7 +21,7 @@ format desciption:
  * topic URI prefix as the first entry (row: 0, col: 0)
  * all direct child topics are the remaining header columns
 
-### import some notes from a CSV file
+### Example: import some notes from a CSV file
 
 to create some *Note* topics use a CSV file like the following:
 

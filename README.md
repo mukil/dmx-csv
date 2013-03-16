@@ -2,6 +2,8 @@
 
 simple CSV importer to update flat topic compositions
 
+![screenshot](https://github.com/dgf/dm4-csv/raw/master/screenshot.png)
+
 limitations:
 
  * delimiter: ```|``` (default)
@@ -21,7 +23,7 @@ format desciption:
  * topic URI prefix as the first entry (row: 0, col: 0)
  * all direct child topics are the remaining header columns
 
-### Example: import some notes from a CSV file
+### import some topics from a CSV file
 
 to create some *Note* topics use a CSV file like the following:
 
@@ -32,6 +34,16 @@ two         | check this too  | and with another content
 ```
 
 upload the file with the *Import CSV* action of the *Note* topic type
+
+an import of some *Web Resource* topics could look like this:
+
+```
+deep.web | dm4.webbrowser.url        | dm4.webbrowser.web_resource_description
+site     | http://www.deepamehta.de  | <h1>DeepaMehta</h1><p class="slogan">Cope With Complexity</p>
+demo     | http://demo.deepamehta.de | <h1>Demo Server</h1><p>try it now</p>
+ci       | http://ci.deepamehta.de   | <h1>Continuous Integration</h1><p>fresh nightly builds</p>
+```
+
 
 ### update topics
 

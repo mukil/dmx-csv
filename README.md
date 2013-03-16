@@ -4,24 +4,22 @@ simple CSV importer to update flat topic compositions
 
 ![screenshot](https://github.com/dgf/dm4-csv/raw/master/screenshot.png)
 
-limitations:
+Limitations:
 
  * delimiter: ```|``` (default)
  * data type: Text
 
+
 ## Requirements
 
- * [DeepaMehta 4](http://github.com/jri/deepamehta) 4.1-SNAPSHOT
+ * [DeepaMehta 4](http://github.com/jri/deepamehta) 4.1
  * Write access to dm4.filerepo.path (see DM4 config file)
+
 
 ## Usage
 
 the plugin adds an *Import CSV* action for topic types
 
-format desciption:
-
- * topic URI prefix as the first entry (row: 0, col: 0)
- * all direct child topics are the remaining header columns
 
 ### import some topics from a CSV file
 
@@ -45,7 +43,7 @@ ci       | http://ci.deepamehta.de   | <h1>Continuous Integration</h1><p>fresh n
 ```
 
 
-### update topics
+### update existing topics
 
 to update all instances of a topic type just import the modified CSV file again,
 but be aware of these rules:
@@ -53,4 +51,11 @@ but be aware of these rules:
  * existing topic is updated by a URI match
  * row without a matching topic URI creates a new topic instance
  * existing topic instance with a type URI and no actual row match is deleted
+
+
+### CSV Format Description
+
+ * topic URI prefix as the first entry (row: 0, col: 0)
+ * all direct child topics are the remaining header columns
+ * one topic per row with topic URI suffix in the first column
 

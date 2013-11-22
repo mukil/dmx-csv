@@ -12,7 +12,7 @@ Limitations:
 
 ## Requirements
 
- * [DeepaMehta 4](http://github.com/jri/deepamehta) 4.1
+ * [DeepaMehta 4](http://github.com/jri/deepamehta) 4.1.3-SNAPSHOT
  * Write access to dm4.filerepo.path (see DM4 config file)
 
 

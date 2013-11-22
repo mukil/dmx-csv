@@ -53,9 +53,6 @@ public class CsvPlugin extends PluginActivator {
 
         DeepaMehtaTransaction tx = dms.beginTx();
         try {
-            // status informations
-            int created = 0, deleted = 0, updated = 0;
-
             List<String[]> lines = readCsvFile(fileId);
             if (lines.size() < 2) {
                 return new ImportStatus(false, "please upload a valid CSV, see README", null);
@@ -64,9 +61,11 @@ public class CsvPlugin extends PluginActivator {
             List<String> childTypeUris = Arrays.asList(lines.get(0));
             String uriPrefix = childTypeUris.get(0);
 
-            Map<String, Long> topicsByUri = getTopicIdsByUri(typeUri, cookie);
-            Map<String, Map<String, Long>> aggrIdsByTypeUriAndValue = getPossibleAggrChilds( //
-                    typeUri, childTypeUris, cookie);
+            Map<String, Long> topicsByUri = getTopicIdsByUri(typeUri);
+            Map<String, Map<String, Long>> aggrIdsByTypeUriAndValue = getPossibleAggrChilds(typeUri, childTypeUris);
+
+            // status informations
+            int created = 0, deleted = 0, updated = 0;
 
             // persist each row
             for (int r = 1; r < lines.size(); r++) {
@@ -109,19 +108,19 @@ public class CsvPlugin extends PluginActivator {
             // delete the remaining instances
             for (String topicUri : topicsByUri.keySet()) {
                 Long topicId = topicsByUri.get(topicUri);
-                dms.deleteTopic(topicId, cookie);
+                dms.deleteTopic(topicId);
                 deleted++;
             }
 
-            List<String> infos = new ArrayList<String>();
-            infos.add("created: " + created);
-            infos.add("updated: " + updated);
-            infos.add("deleted: " + deleted);
+            List<String> status = new ArrayList<String>();
+            status.add("created: " + created);
+            status.add("updated: " + updated);
+            status.add("deleted: " + deleted);
 
             tx.success();
-            return new ImportStatus(true, "SUCCESS", infos);
-        } catch (Exception e) {
-            throw new WebApplicationException(e);
+            return new ImportStatus(true, "SUCCESS", status);
+        } catch (IOException e) {
+            throw new RuntimeException(e) ;
         } finally {
             tx.finish();
         }
@@ -132,19 +131,16 @@ public class CsvPlugin extends PluginActivator {
      * 
      * @param typeUri
      * @param childTypeUris
-     * @param cookie
      * @return
      */
-    private Map<String, Map<String, Long>> getPossibleAggrChilds(String typeUri, List<String> childTypeUris,
-            ClientState cookie) {
-        TopicType topicType = dms.getTopicType(typeUri, cookie);
+    private Map<String, Map<String, Long>> getPossibleAggrChilds(String typeUri, List<String> childTypeUris) {
+        TopicType topicType = dms.getTopicType(typeUri);
         Map<String, Map<String, Long>> aggrIdsByTypeUriAndValue = new HashMap<String, Map<String, Long>>();
         for (AssociationDefinition associationDefinition : topicType.getAssocDefs()) {
             if (associationDefinition.getTypeUri().equals("dm4.core.aggregation_def")) {
                 String childTypeUri = associationDefinition.getChildTypeUri();
                 if (childTypeUris.contains(childTypeUri)) {
-                    aggrIdsByTypeUriAndValue.put(childTypeUri, //
-                            getTopicIdsByValue(childTypeUri, cookie));
+                    aggrIdsByTypeUriAndValue.put(childTypeUri, getTopicIdsByValue(childTypeUri));
                 }
             }
         }
@@ -154,13 +150,12 @@ public class CsvPlugin extends PluginActivator {
     /**
      * get all existing instance topics and hash them by value
      * 
-     * @param typeUri
-     * @param cookie
+     * @param childTypeUri
      * @return instance topics hashed by value
      */
-    private Map<String, Long> getTopicIdsByValue(String childTypeUri, ClientState cookie) {
+    private Map<String, Long> getTopicIdsByValue(String childTypeUri) {
         Map<String, Long> idsByValue = new HashMap<String, Long>();
-        for (RelatedTopic instance : dms.getTopics(childTypeUri, false, 0, cookie).getItems()) {
+        for (RelatedTopic instance : dms.getTopics(childTypeUri, false, 0).getItems()) {
             idsByValue.put(instance.getSimpleValue().toString(), instance.getId());
         }
         return idsByValue;
@@ -170,12 +165,11 @@ public class CsvPlugin extends PluginActivator {
      * get all existing instance topics and hash them by URI
      * 
      * @param typeUri
-     * @param cookie
      * @return instance topics hashed by URI
      */
-    private Map<String, Long> getTopicIdsByUri(String typeUri, ClientState cookie) {
+    private Map<String, Long> getTopicIdsByUri(String typeUri) {
         Map<String, Long> idsByUri = new HashMap<String, Long>();
-        for (RelatedTopic topic : dms.getTopics(typeUri, false, 0, cookie).getItems()) {
+        for (RelatedTopic topic : dms.getTopics(typeUri, false, 0).getItems()) {
             String topicUri = topic.getUri();
             if (topicUri != null && topicUri.isEmpty() == false) {
                 idsByUri.put(topicUri, topic.getId());
@@ -193,7 +187,7 @@ public class CsvPlugin extends PluginActivator {
      * @throws FileNotFoundException
      * @throws IOException
      */
-    private List<String[]> readCsvFile(long fileId) throws FileNotFoundException, IOException {
+    private List<String[]> readCsvFile(long fileId) throws IOException {
         String fileName = fileService.getFile(fileId).getAbsolutePath();
         log.info("read CSV " + fileName);
         CSVReader csvReader = new CSVReader(new FileReader(fileName), SEPARATOR);

@@ -59,3 +59,12 @@ but be aware of these rules:
  * all direct child topics are the remaining header columns
  * one topic per row with topic URI suffix in the first column
 
+## Development
+
+clone this repo and install the plugin before starting the runner
+
+    git clone https://github.com/dgf/dm4-csv
+    cd dm4-csv
+    mvn install
+    mvn pax:run
+

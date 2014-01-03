@@ -1,0 +1,9 @@
+deepamehta-db/
+images/
+runner/
+target/
+.classpath
+.idea
+.project
+.settings
+*.iml

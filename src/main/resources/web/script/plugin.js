@@ -26,8 +26,10 @@ dm4c.add_plugin('dm4.csv.plugin', function() {
         dm4c.get_plugin('de.deepamehta.files').open_upload_dialog('/files/csv', 
                 function(file) {
 
+            // Start to import the content of the just uploaded file
             var status = dm4c.restc.request('POST', '/csv/import/' +
-                    dm4c.selected_object.uri + '/' + file.topic_id)
+                    dm4c.selected_object.uri + '/' + file['topic_id'])
+
             var $message = $('<span>').text(status.message)
             var $infos = $('<ul>')
 
@@ -40,11 +42,17 @@ dm4c.add_plugin('dm4.csv.plugin', function() {
                 $message.addClass('error')
             }
 
-            dm4c.ui.dialog({
-                id: 'csvImportStatus',
-                title: 'CSV Import Status Report',
-                content: $('<div>').append($message).append($infos)
-            }).open()
+            // The following lines throw "TypeError: undefined is not a function"
+            // but at least (the importer process) seems to be unaffected.
+            try {
+                dm4c.ui.dialog({
+                    "id"    : 'csvImportStatus',
+                    "title" : 'CSV Import Status Report',
+                    "content" : $('<div>').append($message).append($infos)
+                }).open()
+            } catch (ex_un) {
+                console.warn("UI Dialog Exception:", ex_un)
+            }
 
         })
     }

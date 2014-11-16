@@ -1,4 +1,24 @@
+
 dm4c.add_plugin('dm4.csv.plugin', function() {
+    
+     function isLoggedIn() {
+        var requestUri = '/accesscontrol/user'
+        //
+        var response = false
+        $.ajax({
+            type: "GET", url: requestUri,
+            dataType: "text", processData: true, async: false,
+            success: function(data, text_status, jq_xhr) {
+                if (typeof data === "undefined") return false // this seems to match (new) response semantics
+                if (data != "") response = true
+            },
+            error: function(jq_xhr, text_status, error_thrown) {
+                console.warn("CSV Importer Plugin says: Not authenticated.")
+                response = false
+            }
+        })
+        return response
+    }
 
     // upload and import the file
     function importCsv() {
@@ -33,8 +53,8 @@ dm4c.add_plugin('dm4.csv.plugin', function() {
     dm4c.add_listener('topic_commands', function(topic) {
 
         var commands = []
-
-        if (topic.type_uri === 'dm4.core.topic_type') {
+        
+        if (isLoggedIn() && topic.type_uri === 'dm4.core.topic_type') {
             commands.push({
                 is_separator : true,
                 context : 'context-menu'

@@ -30,8 +30,11 @@ import de.deepamehta.core.service.annotation.ConsumesService;
 import de.deepamehta.core.storage.spi.DeepaMehtaTransaction;
 import de.deepamehta.plugins.files.ResourceInfo;
 import de.deepamehta.plugins.files.service.FilesService;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
 
 @Path("csv")
+@Produces(MediaType.APPLICATION_JSON)
 public class CsvPlugin extends PluginActivator {
 
     private static Logger log = Logger.getLogger(CsvPlugin.class.getName());

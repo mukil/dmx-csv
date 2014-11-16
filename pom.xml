@@ -6,8 +6,8 @@
 
     <name>DeepaMehta 4 CSV</name>
     <groupId>de.deepamehta</groupId>
-    <artifactId>deepamehta-csv</artifactId>
-    <version>0.0.3-SNAPSHOT</version>
+    <artifactId>dm43-deepamehta-csv</artifactId>
+    <version>0.0.3</version>
     <packaging>bundle</packaging>
 
     <parent>

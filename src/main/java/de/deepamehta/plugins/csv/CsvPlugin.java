@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -21,13 +20,12 @@ import au.com.bytecode.opencsv.CSVReader;
 import de.deepamehta.core.AssociationDefinition;
 import de.deepamehta.core.RelatedTopic;
 import de.deepamehta.core.TopicType;
-import de.deepamehta.core.model.CompositeValueModel;
+import de.deepamehta.core.model.ChildTopicsModel;
 import de.deepamehta.core.model.TopicModel;
 import de.deepamehta.core.osgi.PluginActivator;
-import de.deepamehta.core.service.ClientState;
+import de.deepamehta.core.service.Inject;
 import de.deepamehta.core.service.PluginService;
-import de.deepamehta.core.service.annotation.ConsumesService;
-import de.deepamehta.core.storage.spi.DeepaMehtaTransaction;
+import de.deepamehta.core.service.Transactional;
 import de.deepamehta.plugins.files.ResourceInfo;
 import de.deepamehta.plugins.files.service.FilesService;
 import javax.ws.rs.Produces;
@@ -44,27 +42,29 @@ public class CsvPlugin extends PluginActivator {
     public static final char SEPARATOR = '|';
 
     private boolean isInitialized;
-
+    
+    @Inject
     private FilesService fileService;
 
     @POST
+    @Transactional
     @Path("import/{uri}/{file}")
     public ImportStatus importCsv(//
             @PathParam("uri") String typeUri,//
-            @PathParam("file") long fileId,//
-            @HeaderParam("Cookie") ClientState cookie) {
+            @PathParam("file") long fileId) {
 
-        DeepaMehtaTransaction tx = dms.beginTx();
         try {
             List<String[]> lines = readCsvFile(fileId);
             if (lines.size() < 2) {
                 return new ImportStatus(false, "please upload a valid CSV, see README", null);
             }
 
+            // read in typeUris of childTopics
             List<String> childTypeUris = Arrays.asList(lines.get(0));
             String uriPrefix = childTypeUris.get(0);
-
-            Map<String, Long> topicsByUri = getTopicIdsByUri(typeUri);
+            
+            // 
+            Map<String, Long> instancesOfUri = getTopicsByTypeWithURIPrefix(typeUri, uriPrefix);
             Map<String, Map<String, Long>> aggrIdsByTypeUriAndValue = getPossibleAggrChilds(typeUri, childTypeUris);
 
             // status informations
@@ -80,7 +80,7 @@ public class CsvPlugin extends PluginActivator {
                 model.setUri(topicUri);
 
                 // map all columns to composite value
-                CompositeValueModel value = new CompositeValueModel();
+                ChildTopicsModel value = new ChildTopicsModel();
                 for (int c = 1; c < row.length; c++) {
                     String childTypeUri = childTypeUris.get(c);
                     String childValue = row[c];
@@ -93,24 +93,24 @@ public class CsvPlugin extends PluginActivator {
                         value.put(childTypeUri, childValue);
                     }
                 }
-                model.setCompositeValue(value);
+                model.setChildTopicsModel(value);
 
                 // create or update a topic
-                Long topicId = topicsByUri.get(topicUri);
+                Long topicId = instancesOfUri.get(topicUri);
                 if (topicId == null) { // create
-                    dms.createTopic(model, cookie);
+                    dms.createTopic(model);
                     created++;
-                } else { // update topic and remove from map
+                } else { // update topic and remove from map (in java memory)
                     model.setId(topicId);
-                    topicsByUri.remove(topicUri);
-                    dms.updateTopic(model, cookie);
+                    instancesOfUri.remove(topicUri);
+                    dms.updateTopic(model);
                     updated++;
                 }
             }
 
             // delete the remaining instances
-            for (String topicUri : topicsByUri.keySet()) {
-                Long topicId = topicsByUri.get(topicUri);
+            for (String topicUri : instancesOfUri.keySet()) {
+                Long topicId = instancesOfUri.get(topicUri);
                 dms.deleteTopic(topicId);
                 deleted++;
             }
@@ -120,12 +120,9 @@ public class CsvPlugin extends PluginActivator {
             status.add("updated: " + updated);
             status.add("deleted: " + deleted);
 
-            tx.success();
             return new ImportStatus(true, "SUCCESS", status);
         } catch (IOException e) {
             throw new RuntimeException(e) ;
-        } finally {
-            tx.finish();
         }
     }
 
@@ -158,7 +155,7 @@ public class CsvPlugin extends PluginActivator {
      */
     private Map<String, Long> getTopicIdsByValue(String childTypeUri) {
         Map<String, Long> idsByValue = new HashMap<String, Long>();
-        for (RelatedTopic instance : dms.getTopics(childTypeUri, false, 0).getItems()) {
+        for (RelatedTopic instance : dms.getTopics(childTypeUri, 0).getItems()) {
             idsByValue.put(instance.getSimpleValue().toString(), instance.getId());
         }
         return idsByValue;
@@ -170,12 +167,12 @@ public class CsvPlugin extends PluginActivator {
      * @param typeUri
      * @return instance topics hashed by URI
      */
-    private Map<String, Long> getTopicIdsByUri(String typeUri) {
+    private Map<String, Long> getTopicsByTypeWithURIPrefix(String typeUri, String uriPrefix) {
         Map<String, Long> idsByUri = new HashMap<String, Long>();
-        for (RelatedTopic topic : dms.getTopics(typeUri, false, 0).getItems()) {
+        for (RelatedTopic topic : dms.getTopics(typeUri, 0).getItems()) {
             String topicUri = topic.getUri();
             if (topicUri != null && topicUri.isEmpty() == false) {
-                idsByUri.put(topicUri, topic.getId());
+                if (topicUri.startsWith(uriPrefix)) idsByUri.put(topicUri, topic.getId());
             }
         }
         return idsByUri;
@@ -216,7 +213,6 @@ public class CsvPlugin extends PluginActivator {
     }
 
     @Override
-    @ConsumesService("de.deepamehta.plugins.files.service.FilesService")
     public void serviceArrived(PluginService service) {
         if (service instanceof FilesService) {
             fileService = (FilesService) service;

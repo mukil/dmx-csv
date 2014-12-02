@@ -6,14 +6,14 @@
 
     <name>DeepaMehta 4 CSV</name>
     <groupId>de.deepamehta</groupId>
-    <artifactId>dm43-deepamehta-csv</artifactId>
-    <version>0.0.3</version>
+    <artifactId>dm44-deepamehta-csv</artifactId>
+    <version>0.0.4</version>
     <packaging>bundle</packaging>
 
     <parent>
         <groupId>de.deepamehta</groupId>
         <artifactId>deepamehta-plugin-parent</artifactId>
-        <version>4.3</version>
+        <version>4.4</version>
     </parent>
 
     <repositories>
@@ -27,7 +27,7 @@
         <dependency>
             <groupId>de.deepamehta</groupId>
             <artifactId>deepamehta-files</artifactId>
-            <version>4.3</version>
+            <version>4.4</version>
         </dependency>
         <dependency>
             <groupId>net.sf.opencsv</groupId>

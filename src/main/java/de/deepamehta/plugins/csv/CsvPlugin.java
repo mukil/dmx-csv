@@ -21,38 +21,30 @@ import au.com.bytecode.opencsv.CSVReader;
 import de.deepamehta.core.AssociationDefinition;
 import de.deepamehta.core.RelatedTopic;
 import de.deepamehta.core.TopicType;
-import de.deepamehta.core.model.CompositeValueModel;
+import de.deepamehta.core.model.ChildTopicsModel;
 import de.deepamehta.core.model.TopicModel;
 import de.deepamehta.core.osgi.PluginActivator;
-import de.deepamehta.core.service.ClientState;
-import de.deepamehta.core.service.PluginService;
-import de.deepamehta.core.service.annotation.ConsumesService;
+import de.deepamehta.core.service.Inject;
+import de.deepamehta.core.service.Transactional;
 import de.deepamehta.core.storage.spi.DeepaMehtaTransaction;
-import de.deepamehta.plugins.files.ResourceInfo;
-import de.deepamehta.plugins.files.service.FilesService;
+import de.deepamehta.plugins.files.*;
 
 @Path("csv")
 public class CsvPlugin extends PluginActivator {
 
     private static Logger log = Logger.getLogger(CsvPlugin.class.getName());
 
-    public static final String FOLDER = "csv";
-
     public static final char SEPARATOR = '|';
 
-    private boolean isInitialized;
-
+    @Inject
     private FilesService fileService;
 
     @POST
     @Path("import/{uri}/{file}")
-    public ImportStatus importCsv(//
-            @PathParam("uri") String typeUri,//
-            @PathParam("file") long fileId,//
-            @HeaderParam("Cookie") ClientState cookie) {
-
-        DeepaMehtaTransaction tx = dms.beginTx();
+    @Transactional
+    public ImportStatus importCsv(@PathParam("uri") String typeUri, @PathParam("file") long fileId) {
         try {
+
             List<String[]> lines = readCsvFile(fileId);
             if (lines.size() < 2) {
                 return new ImportStatus(false, "please upload a valid CSV, see README", null);
@@ -77,7 +69,7 @@ public class CsvPlugin extends PluginActivator {
                 model.setUri(topicUri);
 
                 // map all columns to composite value
-                CompositeValueModel value = new CompositeValueModel();
+                ChildTopicsModel value = new ChildTopicsModel();
                 for (int c = 1; c < row.length; c++) {
                     String childTypeUri = childTypeUris.get(c);
                     String childValue = row[c];
@@ -90,17 +82,17 @@ public class CsvPlugin extends PluginActivator {
                         value.put(childTypeUri, childValue);
                     }
                 }
-                model.setCompositeValue(value);
+                model.setChildTopicsModel(value);
 
                 // create or update a topic
                 Long topicId = topicsByUri.get(topicUri);
                 if (topicId == null) { // create
-                    dms.createTopic(model, cookie);
+                    dms.createTopic(model);
                     created++;
                 } else { // update topic and remove from map
                     model.setId(topicId);
                     topicsByUri.remove(topicUri);
-                    dms.updateTopic(model, cookie);
+                    dms.updateTopic(model);
                     updated++;
                 }
             }
@@ -117,12 +109,9 @@ public class CsvPlugin extends PluginActivator {
             status.add("updated: " + updated);
             status.add("deleted: " + deleted);
 
-            tx.success();
             return new ImportStatus(true, "SUCCESS", status);
         } catch (IOException e) {
             throw new RuntimeException(e) ;
-        } finally {
-            tx.finish();
         }
     }
 
@@ -155,7 +144,7 @@ public class CsvPlugin extends PluginActivator {
      */
     private Map<String, Long> getTopicIdsByValue(String childTypeUri) {
         Map<String, Long> idsByValue = new HashMap<String, Long>();
-        for (RelatedTopic instance : dms.getTopics(childTypeUri, false, 0).getItems()) {
+        for (RelatedTopic instance : dms.getTopics(childTypeUri, 0).getItems()) {
             idsByValue.put(instance.getSimpleValue().toString(), instance.getId());
         }
         return idsByValue;
@@ -169,7 +158,7 @@ public class CsvPlugin extends PluginActivator {
      */
     private Map<String, Long> getTopicIdsByUri(String typeUri) {
         Map<String, Long> idsByUri = new HashMap<String, Long>();
-        for (RelatedTopic topic : dms.getTopics(typeUri, false, 0).getItems()) {
+        for (RelatedTopic topic : dms.getTopics(typeUri, 0).getItems()) {
             String topicUri = topic.getUri();
             if (topicUri != null && topicUri.isEmpty() == false) {
                 idsByUri.put(topicUri, topic.getId());
@@ -193,7 +182,6 @@ public class CsvPlugin extends PluginActivator {
         CSVReader csvReader = new CSVReader(new FileReader(fileName), SEPARATOR);
         List<String[]> lines = csvReader.readAll();
         csvReader.close();
-
         // trim all columns
         for (String[] row : lines) {
             for (int col = 0; col < row.length; col++) {
@@ -203,57 +191,9 @@ public class CsvPlugin extends PluginActivator {
         return lines;
     }
 
-    /**
-     * Initialize.
-     */
-    @Override
-    public void init() {
-        isInitialized = true;
-        configureIfReady();
+    private String prefix() {
+        File repo = fileService.getFile("/");
+        return ((FilesPlugin) fileService).repoPath(repo);
     }
 
-    @Override
-    @ConsumesService("de.deepamehta.plugins.files.service.FilesService")
-    public void serviceArrived(PluginService service) {
-        if (service instanceof FilesService) {
-            fileService = (FilesService) service;
-        }
-        configureIfReady();
-    }
-
-    @Override
-    public void serviceGone(PluginService service) {
-        if (service == fileService) {
-            fileService = null;
-        }
-    }
-
-    private void configureIfReady() {
-        if (isInitialized && fileService != null) {
-            createCsvDirectory();
-        }
-    }
-
-    private void createCsvDirectory() {
-        // TODO move the initialization to migration "0"
-        try {
-            ResourceInfo resourceInfo = fileService.getResourceInfo(FOLDER);
-            String kind = resourceInfo.toJSON().getString("kind");
-            if (kind.equals("directory") == false) {
-                String repoPath = System.getProperty("dm4.filerepo.path");
-                throw new IllegalStateException("CSV storage directory " + //
-                        repoPath + File.separator + FOLDER + " can not be used");
-            }
-        } catch (WebApplicationException e) { // !exists
-            // catch fileService info request error => create directory
-            if (e.getResponse().getStatus() != 404) {
-                throw e;
-            } else {
-                log.info("create CSV directory");
-                fileService.createFolder(FOLDER, "/");
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
 }

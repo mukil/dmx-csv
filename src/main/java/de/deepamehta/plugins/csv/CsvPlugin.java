@@ -1,22 +1,5 @@
 package de.deepamehta.plugins.csv;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Logger;
-
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.WebApplicationException;
-
 import au.com.bytecode.opencsv.CSVReader;
 import de.deepamehta.core.AssociationDefinition;
 import de.deepamehta.core.RelatedTopic;
@@ -26,10 +9,21 @@ import de.deepamehta.core.model.TopicModel;
 import de.deepamehta.core.osgi.PluginActivator;
 import de.deepamehta.core.service.Inject;
 import de.deepamehta.core.service.Transactional;
-import de.deepamehta.core.storage.spi.DeepaMehtaTransaction;
-import de.deepamehta.plugins.files.*;
+import de.deepamehta.plugins.files.FilesService;
+
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.*;
+import java.util.logging.Logger;
 
 @Path("csv")
+@Produces(MediaType.APPLICATION_JSON)
 public class CsvPlugin extends PluginActivator {
 
     private static Logger log = Logger.getLogger(CsvPlugin.class.getName());
@@ -40,8 +34,8 @@ public class CsvPlugin extends PluginActivator {
     private FilesService fileService;
 
     @POST
-    @Path("import/{uri}/{file}")
     @Transactional
+    @Path("import/{uri}/{file}")
     public ImportStatus importCsv(@PathParam("uri") String typeUri, @PathParam("file") long fileId) {
         try {
 
@@ -50,10 +44,12 @@ public class CsvPlugin extends PluginActivator {
                 return new ImportStatus(false, "please upload a valid CSV, see README", null);
             }
 
+            // read in typeUris of childTopics
             List<String> childTypeUris = Arrays.asList(lines.get(0));
             String uriPrefix = childTypeUris.get(0);
-
-            Map<String, Long> topicsByUri = getTopicIdsByUri(typeUri);
+            
+            // 
+            Map<String, Long> instancesOfUri = getTopicsByTypeWithURIPrefix(typeUri, uriPrefix);
             Map<String, Map<String, Long>> aggrIdsByTypeUriAndValue = getPossibleAggrChilds(typeUri, childTypeUris);
 
             // status informations
@@ -85,21 +81,21 @@ public class CsvPlugin extends PluginActivator {
                 model.setChildTopicsModel(value);
 
                 // create or update a topic
-                Long topicId = topicsByUri.get(topicUri);
+                Long topicId = instancesOfUri.get(topicUri);
                 if (topicId == null) { // create
                     dms.createTopic(model);
                     created++;
-                } else { // update topic and remove from map
+                } else { // update topic and remove from map (in java memory)
                     model.setId(topicId);
-                    topicsByUri.remove(topicUri);
+                    instancesOfUri.remove(topicUri);
                     dms.updateTopic(model);
                     updated++;
                 }
             }
 
             // delete the remaining instances
-            for (String topicUri : topicsByUri.keySet()) {
-                Long topicId = topicsByUri.get(topicUri);
+            for (String topicUri : instancesOfUri.keySet()) {
+                Long topicId = instancesOfUri.get(topicUri);
                 dms.deleteTopic(topicId);
                 deleted++;
             }
@@ -156,12 +152,12 @@ public class CsvPlugin extends PluginActivator {
      * @param typeUri
      * @return instance topics hashed by URI
      */
-    private Map<String, Long> getTopicIdsByUri(String typeUri) {
+    private Map<String, Long> getTopicsByTypeWithURIPrefix(String typeUri, String uriPrefix) {
         Map<String, Long> idsByUri = new HashMap<String, Long>();
         for (RelatedTopic topic : dms.getTopics(typeUri, 0).getItems()) {
             String topicUri = topic.getUri();
             if (topicUri != null && topicUri.isEmpty() == false) {
-                idsByUri.put(topicUri, topic.getId());
+                if (topicUri.startsWith(uriPrefix)) idsByUri.put(topicUri, topic.getId());
             }
         }
         return idsByUri;
@@ -189,11 +185,6 @@ public class CsvPlugin extends PluginActivator {
             }
         }
         return lines;
-    }
-
-    private String prefix() {
-        File repo = fileService.getFile("/");
-        return ((FilesPlugin) fileService).repoPath(repo);
     }
 
 }

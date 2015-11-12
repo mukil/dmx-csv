@@ -1,6 +1,10 @@
-dm4c.add_plugin('dm4.csv.plugin', function() {
 
-    // upload and import the file
+dm4c.add_plugin('dm4.csv.plugin', function() {
+    
+    function isLoggedIn() {
+        return dm4c.get_plugin("de.deepamehta.accesscontrol").get_username()
+    }
+
     function importCsv() {
 
         // ### TODO: make the folder/path the uploaded file should be stored into a choice of the user
@@ -19,11 +23,17 @@ dm4c.add_plugin('dm4.csv.plugin', function() {
                 $message.addClass('error')
             }
 
-            dm4c.ui.dialog({
-                id: 'csvImportStatus',
-                title: 'CSV Import Status Report',
-                content: $('<div>').append($message).append($infos)
-            }).open()
+            // The following lines throw "TypeError: undefined is not a function"
+            // but at least (the importer process) seems to be unaffected.
+            try {
+                dm4c.ui.dialog({
+                    "id"    : 'csvImportStatus',
+                    "title" : 'CSV Import Status Report',
+                    "content" : $('<div>').append($message).append($infos)
+                }).open()
+            } catch (ex_un) {
+                console.warn("UI Dialog Exception:", ex_un)
+            }
 
         })
     }
@@ -32,8 +42,7 @@ dm4c.add_plugin('dm4.csv.plugin', function() {
     dm4c.add_listener('topic_commands', function(topic) {
 
         var commands = []
-
-        if (topic.type_uri === 'dm4.core.topic_type') {
+        if (isLoggedIn() && topic.type_uri === 'dm4.core.topic_type') {
             commands.push({
                 is_separator : true,
                 context : 'context-menu'

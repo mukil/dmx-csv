@@ -9,6 +9,7 @@ import de.deepamehta.core.model.TopicModel;
 import de.deepamehta.core.osgi.PluginActivator;
 import de.deepamehta.core.service.Inject;
 import de.deepamehta.core.service.Transactional;
+import de.deepamehta.core.storage.spi.DeepaMehtaTransaction;
 import de.deepamehta.files.FilesService;
 
 import javax.ws.rs.POST;
@@ -49,7 +50,6 @@ public class CsvPlugin extends PluginActivator {
     private FilesService fileService;
 
     @POST
-    @Transactional
     @Path("import/{uri}/{file}")
     public ImportStatus importCsv(@PathParam("uri") String typeUri, @PathParam("file") long fileId) {
         try {
@@ -96,24 +96,33 @@ public class CsvPlugin extends PluginActivator {
                 model.setChildTopicsModel(value);
 
                 // create or update a topic
+                // this needs to be done in single transactions so referencing aggrated topics by value works
+                // when they come all in one .csv file
                 Long topicId = instancesOfUri.get(topicUri);
+                DeepaMehtaTransaction tx = dm4.beginTx();
                 if (topicId == null) { // create
                     dm4.createTopic(model);
                     created++;
+                    tx.success();
                 } else { // update topic and remove from map (in java memory)
                     model.setId(topicId);
                     instancesOfUri.remove(topicUri);
                     dm4.updateTopic(model);
                     updated++;
+                    tx.success();
                 }
+                tx.finish();
             }
 
             // delete the remaining instances
+            DeepaMehtaTransaction tx = dm4.beginTx();
             for (String topicUri : instancesOfUri.keySet()) {
                 Long topicId = instancesOfUri.get(topicUri);
                 dm4.deleteTopic(topicId);
                 deleted++;
             }
+            tx.success();
+            tx.finish();
 
             List<String> status = new ArrayList<String>();
             status.add("created: " + created);

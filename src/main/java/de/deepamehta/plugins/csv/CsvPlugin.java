@@ -8,7 +8,6 @@ import de.deepamehta.core.model.ChildTopicsModel;
 import de.deepamehta.core.model.TopicModel;
 import de.deepamehta.core.osgi.PluginActivator;
 import de.deepamehta.core.service.Inject;
-import de.deepamehta.core.service.Transactional;
 import de.deepamehta.plugins.files.FilesService;
 
 import javax.ws.rs.POST;
@@ -22,6 +21,22 @@ import java.io.IOException;
 import java.util.*;
 import java.util.logging.Logger;
 
+
+/**
+ * A plugin to map lines of a .CSV file (TAB-separated) to instances of a simple Topic Type.
+ * Where simple means that the Topic Type Definition must not have another _Composite_ as child (levels of depth
+ * supported not more than one) but  can have many simple child Topic Types (e.g. Text, Number, Boolean, HTML).<br/><br/>
+ *
+ * Note 1: Through relying on identifiers in the first column of the CSV-document
+ * UPDATES on all values are supported across multiple uploads ("Import CSV" command on Topic Type).<br/><br/>
+ *
+ * Note 2: During the import process, simple "dm4.core.text" (and possibly numbers too) will be matched by value
+ * and Topic Type URI. For that a matching topic is searched and automatically referenced if it's Type Definition
+ * to the type imported to is "Aggregation Definition" (as the value is used and referenced in other topics too).
+ *
+ * @author Malte Rei&szlig;ig (<a href="mailto:malte@mikromedia.de">Email</a>), Danny Graf, 2012-2016
+ * @version 0.0.7
+ */
 @Path("csv")
 @Produces(MediaType.APPLICATION_JSON)
 public class CsvPlugin extends PluginActivator {
@@ -34,7 +49,6 @@ public class CsvPlugin extends PluginActivator {
     private FilesService fileService;
 
     @POST
-    @Transactional
     @Path("import/{uri}/{file}")
     public ImportStatus importCsv(@PathParam("uri") String typeUri, @PathParam("file") long fileId) {
         try {

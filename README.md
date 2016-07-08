@@ -2,7 +2,7 @@
 
 A simple CSV importer to import and update flat topic compositions in [DeepaMehta 4](https://github.com/jri/deepamehta).
 
-![screenshot](https://github.com/dgf/dm4-csv/raw/master/screenshot.png)
+![screenshot](https://github.com/mukil/dm4-csv/raw/master/screenshot.png)
 
 Limitations:
 
@@ -16,8 +16,8 @@ You can find the recommended (not-SNAPSHOT) versions of this plugin bundled for 
 
 ## Requirements
 
- * [DeepaMehta 4](http://github.com/jri/deepamehta) 4.3
- * Write access to dm4.filerepo.path (see DM4 config file)
+ * [DeepaMehta 4](http://github.com/jri/deepamehta) 4.7
+ * Write access to `dm4.filerepo.path` (see DM4 `config.properties` file)
 
 
 ## Usage
@@ -63,16 +63,7 @@ but be aware of these rules:
  * all direct child topics are the remaining header columns
  * one topic per row with topic URI suffix in the first column
 
-## Development
+### Authors
 
-clone this repo and install the plugin before starting the runner
-
-    git clone https://github.com/dgf/dm4-csv
-    cd dm4-csv
-    mvn install
-    mvn pax:run
-
-Authors:
-
-Danny Graf, Malte Reißig 2013-2014
+Danny Graf, Malte Reißig 2013-2015
 

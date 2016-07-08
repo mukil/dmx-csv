@@ -1,4 +1,3 @@
-
 dm4c.add_plugin('dm4.csv.plugin', function() {
     
     function isLoggedIn() {
@@ -6,9 +5,7 @@ dm4c.add_plugin('dm4.csv.plugin', function() {
     }
 
     function importCsv() {
-
-        // ### TODO: make the folder/path the uploaded file should be stored into a choice of the user
-        dm4c.get_plugin('de.deepamehta.files').open_upload_dialog('/files/',  function(file) {
+        dm4c.get_plugin('de.deepamehta.files').open_upload_dialog('/files/' + encodeURIComponent('/'),  function(file) {
 
             var status = dm4c.restc.request('POST', '/csv/import/' + dm4c.selected_object.uri + '/' + file.topic_id)
             var $message = $('<span>').text(status.message)
@@ -25,6 +22,7 @@ dm4c.add_plugin('dm4.csv.plugin', function() {
 
             // The following lines throw "TypeError: undefined is not a function"
             // but at least (the importer process) seems to be unaffected.
+            // TODO: Holds this still true?
             try {
                 dm4c.ui.dialog({
                     "id"    : 'csvImportStatus',

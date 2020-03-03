@@ -1,4 +1,4 @@
-deep.web | dm4.webbrowser.url        | dm4.webbrowser.web_resource_description
-site     | http://www.deepamehta.de  | <h1>DeepaMehta</h1><p class="slogan">Cope With Complexity</p>
-demo     | http://demo.deepamehta.de | <h1>Demo Server</h1><p>try it now</p>
-ci       | http://ci.deepamehta.de   | <h1>Continuous Integration</h1><p>fresh nightly builds</p>
+deep.web | dmx.base.url                  | dmx.bookmarks.description
+site     | https://www.dmx.berlin        | <h1>DMX </h1><p class="slogan">Cope With Complexity</p>
+demo     | https://demo.dmx.de           | <h1>Demo Server</h1><p>try it now</p>
+ci       | https://downloads.dmx.de/ci   | <h1>Continuous Integration</h1><p>fresh nightly builds</p>

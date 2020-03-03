@@ -1,15 +1,6 @@
-package de.deepamehta.plugins.csv;
+package systems.dmx.plugins.csv;
 
 import au.com.bytecode.opencsv.CSVReader;
-import de.deepamehta.core.AssociationDefinition;
-import de.deepamehta.core.Topic;
-import de.deepamehta.core.TopicType;
-import de.deepamehta.core.model.ChildTopicsModel;
-import de.deepamehta.core.model.TopicModel;
-import de.deepamehta.core.osgi.PluginActivator;
-import de.deepamehta.core.service.Inject;
-import de.deepamehta.core.storage.spi.DeepaMehtaTransaction;
-import de.deepamehta.files.FilesService;
 
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -21,8 +12,18 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
 import java.util.logging.Logger;
+import systems.dmx.core.CompDef;
+import systems.dmx.core.Topic;
+import systems.dmx.core.TopicType;
+import systems.dmx.core.model.ChildTopicsModel;
+import systems.dmx.core.model.TopicModel;
+import systems.dmx.core.osgi.PluginActivator;
+import systems.dmx.core.service.Inject;
+import systems.dmx.core.storage.spi.DMXTransaction;
+import systems.dmx.files.FilesService;
 
 /**
+ * TODO: Update
  * A plugin to map lines of a .CSV file (TAB-separated) to instances of a simple Topic Type.
  * Where simple means that the Topic Type Definition must not have another _Composite_ as child (levels of depth
  * supported not more than one) but  can have many simple child Topic Types (e.g. Text, Number, Boolean, HTML).<br/><br/>
@@ -30,12 +31,12 @@ import java.util.logging.Logger;
  * Note 1: Through relying on identifiers in the first column of the CSV-document
  * UPDATES on all values are supported across multiple uploads ("Import CSV" command on Topic Type).<br/><br/>
  *
- * Note 2: During the import process, simple "dm4.core.text" (and possibly numbers too) will be matched by value
+ * Note 2: During the import process, simple "dmx.core.text" (and possibly numbers too) will be matched by value
  * and Topic Type URI. For that a matching topic is searched and automatically referenced if it's Type Definition
- * to the type imported to is "Aggregation Definition" (as the value is used and referenced in other topics too).
+ * to the type imported to is FIXME: Document 5.0-beta-7 (---"Aggregation Definition"---) (as the value is used and referenced in other topics too).
  *
- * @author Malte Rei&szlig;ig (<a href="mailto:malte@mikromedia.de">Email</a>), Danny Graf, 2012-2016
- * @version 0.0.7
+ * @author Malte Rei&szlig;ig (<a href="mailto:malte@mikromedia.de">Email</a>, Danny Graf, 2012-2020
+ * @version 1.0.0-SNAPSHOT
  */
 @Path("csv")
 @Produces(MediaType.APPLICATION_JSON)
@@ -49,10 +50,19 @@ public class CsvPlugin extends PluginActivator {
     private FilesService fileService;
 
     @POST
-    @Path("import/{uri}/{file}")
-    public ImportStatus importCsv(@PathParam("uri") String typeUri, @PathParam("file") long fileId) {
+    @Path("import/{fileId}")
+    public ImportStatus importCsv(@PathParam("fileId") long fileId) {
         try {
 
+            Topic configuredType = getConfiguredTopicType(fileId);
+            TopicType topicType = dmx.getTopicType(configuredType.getUri());
+            String typeUri = "";
+            if (topicType == null) {
+                return new ImportStatus(false, "please associate a Topic Type to the file topic for importing (via File Import association)", null);
+            } else {
+                typeUri = topicType.getUri();
+                log.info("CSV Import configured for \"" + topicType.getSimpleValue() + "\" (" + typeUri + ")");
+            }
             List<String[]> lines = readCsvFile(fileId);
             if (lines.size() < 2) {
                 return new ImportStatus(false, "please upload a valid CSV, see README", null);
@@ -76,21 +86,14 @@ public class CsvPlugin extends PluginActivator {
 
                 // create a fresh model
                 TopicModel model = mf.newTopicModel(typeUri);
-                model.setUri(topicUri);
+                // ### model.setUri(topicUri);
 
                 // map all columns to composite value
                 ChildTopicsModel value = mf.newChildTopicsModel();
                 for (int c = 1; c < row.length; c++) {
                     String childTypeUri = childTypeUris.get(c);
                     String childValue = row[c];
-
-                    // reference or create a child
-                    Map<String, Long> aggrIdsByValue = aggrIdsByTypeUriAndValue.get(childTypeUri);
-                    if (aggrIdsByValue != null && aggrIdsByValue.get(childValue) != null) {
-                        value.putRef(childTypeUri, aggrIdsByValue.get(childValue));
-                    } else {
-                        value.put(childTypeUri, childValue);
-                    }
+                    value.put(childTypeUri, childValue);
                 }
                 model.setChildTopicsModel(value);
 
@@ -98,15 +101,15 @@ public class CsvPlugin extends PluginActivator {
                 // this needs to be done in single transactions so referencing aggrated topics by value works
                 // when they come all in one .csv file
                 Long topicId = instancesOfUri.get(topicUri);
-                DeepaMehtaTransaction tx = dm4.beginTx();
+                DMXTransaction tx = dmx.beginTx();
                 if (topicId == null) { // create
-                    dm4.createTopic(model);
+                    dmx.createTopic(model);
                     created++;
                     tx.success();
                 } else { // update topic and remove from map (in java memory)
                     model.setId(topicId);
                     instancesOfUri.remove(topicUri);
-                    dm4.updateTopic(model);
+                    dmx.updateTopic(model);
                     updated++;
                     tx.success();
                 }
@@ -114,10 +117,10 @@ public class CsvPlugin extends PluginActivator {
             }
 
             // delete the remaining instances
-            DeepaMehtaTransaction tx = dm4.beginTx();
+            DMXTransaction tx = dmx.beginTx();
             for (String topicUri : instancesOfUri.keySet()) {
                 Long topicId = instancesOfUri.get(topicUri);
-                dm4.deleteTopic(topicId);
+                dmx.deleteTopic(topicId);
                 deleted++;
             }
             tx.success();
@@ -142,12 +145,14 @@ public class CsvPlugin extends PluginActivator {
      * @return
      */
     private Map<String, Map<String, Long>> getPossibleAggrChilds(String typeUri, List<String> childTypeUris) {
-        TopicType topicType = dm4.getTopicType(typeUri);
+        TopicType topicType = dmx.getTopicType(typeUri);
         Map<String, Map<String, Long>> aggrIdsByTypeUriAndValue = new HashMap<String, Map<String, Long>>();
-        for (AssociationDefinition associationDefinition : topicType.getAssocDefs()) {
-            if (associationDefinition.getTypeUri().equals("dm4.core.aggregation_def")) {
+        for (CompDef associationDefinition : topicType.getCompDefs()) {
+            if (associationDefinition.getTypeUri().equals("dmx.core.composition_def")) {
                 String childTypeUri = associationDefinition.getChildTypeUri();
+                log.info("childTypeUri: " + childTypeUri);
                 if (childTypeUris.contains(childTypeUri)) {
+                    log.info("childTypeUris contains: " + getTopicIdsByValue(childTypeUri));
                     aggrIdsByTypeUriAndValue.put(childTypeUri, getTopicIdsByValue(childTypeUri));
                 }
             }
@@ -163,7 +168,7 @@ public class CsvPlugin extends PluginActivator {
      */
     private Map<String, Long> getTopicIdsByValue(String childTypeUri) {
         Map<String, Long> idsByValue = new HashMap<String, Long>();
-        for (Topic instance : dm4.getTopicsByType(childTypeUri)) {
+        for (Topic instance : dmx.getTopicsByType(childTypeUri)) {
             idsByValue.put(instance.getSimpleValue().toString(), instance.getId());
         }
         return idsByValue;
@@ -177,10 +182,13 @@ public class CsvPlugin extends PluginActivator {
      */
     private Map<String, Long> getTopicsByTypeWithURIPrefix(String typeUri, String uriPrefix) {
         Map<String, Long> idsByUri = new HashMap<String, Long>();
-        for (Topic topic : dm4.getTopicsByType(typeUri)) {
+        for (Topic topic : dmx.getTopicsByType(typeUri)) {
             String topicUri = topic.getUri();
             if (topicUri != null && topicUri.isEmpty() == false) {
+                log.info("DEBUG: add topicURI " + topicUri + " to cache map");
                 if (topicUri.startsWith(uriPrefix)) idsByUri.put(topicUri, topic.getId());
+            } else {
+                log.warning("DEBUG: NOT add topicURI " + topicUri + " to cache map");
             }
         }
         return idsByUri;
@@ -208,6 +216,11 @@ public class CsvPlugin extends PluginActivator {
             }
         }
         return lines;
+    }
+
+    private Topic getConfiguredTopicType(long fileId) {
+        Topic csvFile = dmx.getTopic(fileId);
+        return csvFile.getRelatedTopic("dmx.csv.file_import", null, null, null);
     }
 
 }

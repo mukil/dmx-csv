@@ -1,0 +1,18 @@
+{
+  "assoc_types": [
+    {
+      "value":       "File Import",
+      "uri":         "dmx.csv.file_import",
+      "dataTypeUri": "dmx.core.text",
+      "viewConfigTopics": [
+        {
+          "typeUri": "dmx.webclient.view_config",
+          "children": {
+            "dmx.webclient.color": "hsl(300, 43%, 53%)",
+            "dmx.webclient.color#dmx.webclient.background_color": "hsl(300, 80%, 96%)"
+          }
+        }
+      ]
+    }
+  ]
+}

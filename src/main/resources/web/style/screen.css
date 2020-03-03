@@ -1,8 +1,0 @@
-
-#csvImportStatus span.success {
-}
-
-#csvImportStatus span.error {
-    background-color: #F2DEDE;
-    color: #B94A48;
-}

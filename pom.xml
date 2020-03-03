@@ -4,23 +4,23 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <name>DeepaMehta 4 CSV</name>
-    <groupId>de.deepamehta</groupId>
-    <artifactId>dm49-deepamehta-csv</artifactId>
-    <version>0.0.8-SNAPSHOT</version>
+    <name>DMX CSV</name>
+    <groupId>systems.dmx</groupId>
+    <artifactId>dmx-csv</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
     <packaging>bundle</packaging>
 
     <parent>
-        <groupId>de.deepamehta</groupId>
-        <artifactId>deepamehta-plugin</artifactId>
-        <version>4.9.1</version>
+        <groupId>systems.dmx</groupId>
+        <artifactId>dmx-plugin</artifactId>
+        <version>5.0-beta-7-SNAPSHOT</version>
     </parent>
 
     <dependencies>
         <dependency>
-            <groupId>de.deepamehta</groupId>
-            <artifactId>deepamehta-files</artifactId>
-            <version>4.9.1</version>
+            <groupId>systems.dmx</groupId>
+            <artifactId>dmx-files</artifactId>
+            <version>5.0-beta-7-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>net.sf.opencsv</groupId>
@@ -29,11 +29,9 @@
         </dependency>
     </dependencies>
 
-    <!--properties>
-        <dm4.deploy.dir>/home/malted/source/mikro/deepamehta/bundle-deploy</dm4.deploy.dir>
-        <dm4.deploy.dir>/home/malted/Schreibtisch/DeepaMehta4/bundle-deploy</dm4.deploy.dir>
-        <dm4.deploy.dir>/home/malted/Downloads/deepamehta-4.8.1/bundle-deploy</dm4.deploy.dir>
-    </properties-->
+    <properties>
+        <dmx.deploy.dir>C:\cygwin64\home\MRG\source\dmx-platform\bundle-deploy</dmx.deploy.dir>
+    </properties>
 
     <build>
         <plugins>
@@ -46,18 +44,46 @@
                 </configuration>
             </plugin>
             <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>npm-install</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>npm</executable>
+                            <commandlineArgs>install</commandlineArgs>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>npm-run-build</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>npm</executable>
+                            <commandlineArgs>run build</commandlineArgs>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
                 <configuration>
                     <instructions>
                         <Bundle-SymbolicName>
-                            de.deepamehta.csv
+                            systems.dmx.csv
                         </Bundle-SymbolicName>
                         <Bundle-Activator>
-                            de.deepamehta.plugins.csv.CsvPlugin
+                            systems.dmx.plugins.csv.CsvPlugin
                         </Bundle-Activator>
                         <Export-Package>
-                            au.com.bytecode.opencsv, de.deepamehta.plugins.csv
+                            au.com.bytecode.opencsv, systems.dmx.plugins.csv
                         </Export-Package>
                     </instructions>
                 </configuration>

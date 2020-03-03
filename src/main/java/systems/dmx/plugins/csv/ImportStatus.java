@@ -1,11 +1,10 @@
-package de.deepamehta.plugins.csv;
+package systems.dmx.plugins.csv;
 
 import java.util.List;
 
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
-
-import de.deepamehta.core.JSONEnabled;
+import systems.dmx.core.JSONEnabled;
 
 public class ImportStatus implements JSONEnabled {
 

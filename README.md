@@ -15,6 +15,10 @@ You need to create yourself a `File` topic manually first. This can be done thro
 
 `http://localhost:8080/files/file/notes.csv`
 
+-  Search and reveal the `notes.csv` file on a topicmap.
+-  Relate the file topic to the Topic Type of your choice.
+-  Retype the association to a `File Import` edge
+-  Fire the custom `Import CSV` command on a file topic (context menu)
 
 ## Download
 

@@ -1,15 +1,19 @@
 # DMX CSV Importer
 
-Note: CSV importing is pretty funny with the new value DMX integration. Sadly, I don't understand it fully yet (or found an issue). It works for a hard-coded type (use `src/test/resources/notes.csv`) typeUri, though!
+Note: CSV importing is pretty funny with the new value DMX integration. Sadly, I don't understand it fully yet (or found an issue). 
 
 A simple CSV importer to import and update flat topic compositions in [DMX 5.0-beta-7-SNAPSHOT](https://github.com/jri/deepamehta).
-
-![screenshot](https://github.com/mukil/dmx-csv/raw/master/screenshot.png)
 
 Limitations:
 
  * delimiter: ```|``` (default)
  * data type: Text
+
+## Usage
+
+You need to create yourself a `File` topic manually first. This can be done through issueing a `GET` request to the FileService endpoint, e.g.:
+
+`http://localhost:8080/files/file/notes.csv`
 
 
 ## Download
@@ -20,7 +24,6 @@ You can find the recommended (not-SNAPSHOT) versions of this plugin in its direc
 
  * [DMX](https://github.com/jri/deepamehta) 5.0-beta-7-SNAPSHOT+
  * Write access to `dmx.filerepo.path` (see DM4 `config.properties` file)
-
 
 ## Usage
 

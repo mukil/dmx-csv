@@ -18,8 +18,6 @@ export default ({store, axios: http}) => ({
             });
           }
         }]  
-        } else {
-          return []
         }
       }
     }

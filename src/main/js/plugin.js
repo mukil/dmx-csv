@@ -1,6 +1,7 @@
-export default ({store, axios: http}) => {
+export default ({store, axios: http}) => ({
 
-    store.dispatch("registerUploadHandler", { props: {
+    init () {
+        store.dispatch("registerUploadHandler", {
             mimeType: "text/csv",
             action: "/csv-import/upload",
             selected: function(selected, list) {
@@ -12,11 +13,10 @@ export default ({store, axios: http}) => {
             error: function(error) {
                 console.log("file upload error")
             }
-        }})
-    console.log("[CSV] dispatched registerUploadHandler")
+        })
+    },
 
-    return {
-        contextCommands: {
+    contextCommands: {
         topic: topic => {
           if (topic.typeUri === 'dmx.files.file') {
             let isCsvFile = (topic.value.indexOf('.csv') != -1) // Fixme: Do the right thing.
@@ -40,5 +40,5 @@ export default ({store, axios: http}) => {
           }
         }
     }
-  }
-}
+
+})

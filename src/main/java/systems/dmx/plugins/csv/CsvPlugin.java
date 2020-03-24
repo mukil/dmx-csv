@@ -12,6 +12,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
 import java.util.logging.Logger;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.WebApplicationException;
 import systems.dmx.core.CompDef;
 import systems.dmx.core.Topic;
 import systems.dmx.core.TopicType;
@@ -19,8 +21,11 @@ import systems.dmx.core.model.ChildTopicsModel;
 import systems.dmx.core.model.TopicModel;
 import systems.dmx.core.osgi.PluginActivator;
 import systems.dmx.core.service.Inject;
+import systems.dmx.core.service.Transactional;
 import systems.dmx.core.storage.spi.DMXTransaction;
 import systems.dmx.files.FilesService;
+import systems.dmx.files.StoredFile;
+import systems.dmx.files.UploadedFile;
 
 /**
  * TODO: Update
@@ -47,7 +52,20 @@ public class CsvPlugin extends PluginActivator {
     public static final char SEPARATOR = '|';
 
     @Inject
-    private FilesService fileService;
+    private FilesService files;
+
+    @POST
+    @Path("/import")
+    @Consumes("multipart/form-data")
+    @Transactional
+    public void uploadCSV(UploadedFile file) {
+        String operation = "Uploaded CSV " + file + " SUCCESSFULLY";
+        try {
+            log.info(operation);
+        } catch (Exception e) {
+            throw new RuntimeException(operation + " failed", e);
+        }
+    }
 
     @POST
     @Path("import/{fileId}")
@@ -204,7 +222,7 @@ public class CsvPlugin extends PluginActivator {
      * @throws IOException
      */
     private List<String[]> readCsvFile(long fileId) throws IOException {
-        String fileName = fileService.getFile(fileId).getAbsolutePath();
+        String fileName = files.getFile(fileId).getAbsolutePath();
         log.info("read CSV " + fileName);
         CSVReader csvReader = new CSVReader(new FileReader(fileName), SEPARATOR);
         List<String[]> lines = csvReader.readAll();

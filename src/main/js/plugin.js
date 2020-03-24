@@ -2,16 +2,16 @@ export default ({store, axios: http}) => ({
 
     init () {
         store.dispatch("registerUploadHandler", {
-            mimeType: "text/csv",
-            action: "/csv-import/upload",
-            selected: function(selected, list) {
-                console.log("upload dialog change selected for upload")
+            mimeType: "CSV", // mimeType or file name ending in UPPERCASE, Fixme: multiple values, e.g. PNG;JPEG;JPG;
+            action: "/csv/import",
+            selected: function(file, fileList) {
+                console.log("[CSV] upload dialog change selected for upload", fileList)
             },
             success: function(response, file, fileList) {
-                console.log("file uploaded successfully", response)
+                console.log("[CSV] file uploaded successfully", response)
             },
-            error: function(error) {
-                console.log("file upload error")
+            error: function(error, file, fileList) {
+                console.log("[CSV] file upload error", error)
             }
         })
     },

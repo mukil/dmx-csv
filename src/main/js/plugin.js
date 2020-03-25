@@ -47,6 +47,7 @@ export default ({dm5, store, axios: http, Vue}) => ({
                   console.log("Import Status", response.data)
                   Vue.prototype.$notify({
                     title: "CSV Import Successful",
+                    dangerouslyUseHTMLString: true,
                     message: JSON.stringify(response.data.infos),
                     type: "success"
                   })

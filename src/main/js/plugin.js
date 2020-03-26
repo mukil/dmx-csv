@@ -2,7 +2,7 @@ export default ({dm5, store, axios: http, Vue}) => ({
 
   init () {
     store.dispatch("registerUploadHandler", {
-      mimeType: "CSV", // mimeType or file name ending in UPPERCASE, Fixme: multiple values, e.g. PNG;JPEG;JPG;
+      mimeTypes:  ["application/vnd.ms-excel", "text/csv"], // 1. Win 10 FFox CSV 2. Other CSV
       action: "/csv/import",
       selected: function(file, fileList) {
         console.log("[CSV] upload dialog change selected for upload", fileList)

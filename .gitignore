@@ -1,4 +1,4 @@
-deepamehta-db/
+dmx-db/
 images/
 runner/
 target/
@@ -7,3 +7,4 @@ target/
 .project
 .settings
 *.iml
+/node_modules/

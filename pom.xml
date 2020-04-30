@@ -13,14 +13,18 @@
     <parent>
         <groupId>systems.dmx</groupId>
         <artifactId>dmx-plugin</artifactId>
-        <version>5.0-beta-7-SNAPSHOT</version>
+        <version>5.0-beta-7</version>
     </parent>
+
+    <!--properties>
+        <dmx.deploy.dir>C:\cygwin64\home\MRG\source\dmx-platform\bundle-deploy</dmx.deploy.dir>
+    </properties-->
 
     <dependencies>
         <dependency>
             <groupId>systems.dmx</groupId>
             <artifactId>dmx-files</artifactId>
-            <version>5.0-beta-7-SNAPSHOT</version>
+            <version>5.0-beta-7</version>
         </dependency>
         <dependency>
             <groupId>net.sf.opencsv</groupId>
@@ -28,10 +32,6 @@
             <version>2.3</version>
         </dependency>
     </dependencies>
-
-    <properties>
-        <dmx.deploy.dir>C:\cygwin64\home\MRG\source\dmx-platform\bundle-deploy</dmx.deploy.dir>
-    </properties>
 
     <build>
         <plugins>

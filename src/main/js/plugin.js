@@ -10,7 +10,9 @@ export default ({dm5, store, axios: http, Vue}) => ({
       success: function(response, file, fileList) {
         this.$store.dispatch("revealTopicById", response.id)
         this.$notify({
-          title: 'CSV File Uploaded', type: 'success'
+          title: 'CSV File Uploaded', type: 'success',
+          dangerouslyUseHTMLString: true, duration: 10000,
+          message: "To configure the uploaded file's content for import, associate it via a <i>File Import</i> association to its respective Topic Type. "
         })
         this.$store.dispatch("closeUploadDialog")
       },
@@ -26,7 +28,8 @@ export default ({dm5, store, axios: http, Vue}) => ({
 
   contextCommands: {
     topic: topic => {
-      if (topic.typeUri === 'dmx.files.file') {
+      let isLoggedIn = (store.state.accesscontrol.username)
+      if (isLoggedIn && topic.typeUri === 'dmx.files.file') {
         // 1) Check configuration
         let hasTargetTypeConfigured = true
         dm5.restClient.getTopicRelatedTopics(topic.id, {

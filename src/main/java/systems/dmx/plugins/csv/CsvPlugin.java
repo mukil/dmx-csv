@@ -13,8 +13,8 @@ import java.io.IOException;
 import java.util.*;
 import java.util.logging.Logger;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.WebApplicationException;
 import systems.dmx.core.CompDef;
+import static systems.dmx.core.Constants.*;
 import systems.dmx.core.Topic;
 import systems.dmx.core.TopicType;
 import systems.dmx.core.model.ChildTopicsModel;
@@ -33,12 +33,10 @@ import systems.dmx.files.UploadedFile;
  * Where simple means that the Topic Type Definition must not have another _Composite_ as child (levels of depth
  * supported not more than one) but  can have many simple child Topic Types (e.g. Text, Number, Boolean, HTML).<br/><br/>
  *
- * Note 1: Through relying on identifiers in the first column of the CSV-document
- * UPDATES on all values are supported across multiple uploads ("Import CSV" command on Topic Type).<br/><br/>
+ * Note 1: Updates of topics by URI only are currently not supported by the new DMX 5.0-beta-7<br/><br/>
  *
- * Note 2: During the import process, simple "dmx.core.text" (and possibly numbers too) will be matched by value
- * and Topic Type URI. For that a matching topic is searched and automatically referenced if it's Type Definition
- * to the type imported to is FIXME: Document 5.0-beta-7 (---"Aggregation Definition"---) (as the value is used and referenced in other topics too).
+ * Note 2: During the import process, simple child topics of datatype "text, number and boolean value will be matched by value
+ * and Topic Type URI.
  *
  * @author Malte Rei&szlig;ig (<a href="mailto:malte@mikromedia.de">Email</a>, Danny Graf, 2012-2020
  * @version 1.0.0-SNAPSHOT
@@ -106,7 +104,7 @@ public class CsvPlugin extends PluginActivator {
 
                 // create a fresh model
                 TopicModel model = mf.newTopicModel(typeUri);
-                // ### model.setUri(topicUri);
+                model.setUri(topicUri);
 
                 // map all columns to composite value
                 ChildTopicsModel value = mf.newChildTopicsModel();
@@ -121,9 +119,13 @@ public class CsvPlugin extends PluginActivator {
                 // this needs to be done in single transactions so referencing aggrated topics by value works
                 // when they come all in one .csv file
                 Long topicId = instancesOfUri.get(topicUri);
+                Topic object = null;
                 DMXTransaction tx = dmx.beginTx();
                 if (topicId == null) { // create
-                    dmx.createTopic(model);
+                    object = dmx.createTopic(model);
+                    dmx.createAssoc(mf.newAssocModel(ASSOCIATION,
+                            mf.newTopicPlayerModel(object.getId(), CHILD),
+                            mf.newTopicPlayerModel(fileId, PARENT)));
                     created++;
                     tx.success();
                 } else { // update topic and remove from map (in java memory)
@@ -204,11 +206,11 @@ public class CsvPlugin extends PluginActivator {
         Map<String, Long> idsByUri = new HashMap<String, Long>();
         for (Topic topic : dmx.getTopicsByType(typeUri)) {
             String topicUri = topic.getUri();
-            if (topicUri != null && topicUri.isEmpty() == false) {
-                log.info("DEBUG: add topicURI " + topicUri + " to cache map");
+            if (topicUri != null && !topicUri.isEmpty()) {
+                log.fine("DEBUG: add topicURI \"" + topicUri + "\" to cache map");
                 if (topicUri.startsWith(uriPrefix)) idsByUri.put(topicUri, topic.getId());
             } else {
-                log.warning("DEBUG: NOT add topicURI " + topicUri + " to cache map");
+                log.fine("DEBUG: NOT add topicURI \"" + topicUri + "\" to cache map");
             }
         }
         return idsByUri;

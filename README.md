@@ -1,8 +1,6 @@
 # DMX CSV Importer
 
-Note: CSV importing is pretty funny with the new value DMX integration. Sadly, I don't understand it fully yet (or found an issue). 
-
-A simple CSV importer to import and update flat topic compositions in [DMX 5.0-beta-7-SNAPSHOT](https://github.com/jri/deepamehta).
+A simple CSV importer to import and update topic entities and theif 1st-level childs into [DMX 5.0-beta-7](https://github.com/jri/deepamehta).
 
 Limitations:
 
@@ -11,27 +9,27 @@ Limitations:
 
 ## Usage
 
-You need to create yourself a `File` topic manually first. This can be done through issueing a `GET` request to the FileService endpoint, e.g.:
+You need to create yourself a `File` topic first.
 
-`http://localhost:8080/files/file/notes.csv`
+This can either be done through issueing a `GET` request to the FileService endpoint, e.g.: `http://localhost:8080/files/file/notes.csv` or through uploading a `.csv` file interactively using the [dmx-upload-dialog](https://github.com/mukil/dmx-upload-dialog) plugin.
 
 -  Search and reveal the `notes.csv` file on a topicmap.
--  Relate the file topic to the Topic Type of your choice.
+-  Relate the file topic to the Topic Type of your choice (the columnds in your .csv file must match the typeURIs).
 -  Retype the association to a `File Import` edge
 -  Fire the custom `Import CSV` command on a file topic (context menu)
 
+See [here](https://github.com/mukil/dmx-csv/tree/master/src/test/resources) to find an exemplary `.csv` file for importing `Note` and `Bookmark` topics.
+
+To run the import process use the *Import CSV* command available on all `File`-topics which end on `.csv`.
+
 ## Download
 
-You can find the recommended (not-SNAPSHOT) versions of this plugin in its directory at [https://download.dmx.systems/plugins/](https://download.dmx.systems/plugins/).
+At some point in the future you may find the latest versions of this plugin at [https://download.dmx.systems/plugins/](https://download.dmx.systems/plugins/).
 
 ## Requirements
 
- * [DMX](https://github.com/jri/deepamehta) 5.0-beta-7-SNAPSHOT+
+ * [DMX](https://github.com/jri/deepamehta) 5.0-beta-7
  * Write access to `dmx.filerepo.path` (see DM4 `config.properties` file)
-
-## Usage
-
-The plugin adds an *Import CSV* command to all `Topic Type`-Topics, which are those with a blue square as an icon.
 
 
 ### Import some topics from a CSV file
@@ -72,7 +70,21 @@ but be aware of these rules:
  * all direct child topics are the remaining header columns
  * one topic per row with topic URI suffix in the first column
 
+## Licensing
+
+DMX CSV is available freely under the GNU Affero General Public License, version 3.
+
+All third party components incorporated into the DMX CSV Software are licensed under the original license provided by the owner of the applicable component.
+
+## Release History
+
+**1.0.0**, Upcoming
+
+- Adapted to be compatible with DMX 5.0
+
+Former releases were undocumented.
+
 ### Authors
 
-(C) Malte Reißig 2013-2020
+(C) Malte Reißig 2013-2020<br/>
 (C) Danny Graf 2013-2015

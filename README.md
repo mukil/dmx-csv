@@ -47,10 +47,11 @@ You could then upload this file through using the *Import CSV* command of the *N
 Alternatively: A CSV file to import some *Web Resource* topics would need its contents structured like the following:
 
 ```
-deep.web | dmx.webbrowser.url        | dmx.webbrowser.web_resource_description
-site     | http://www.deepamehta.de  | <h1>DeepaMehta</h1><p class="slogan">Cope With Complexity</p>
-demo     | http://demo.deepamehta.de | <h1>Demo Server</h1><p>try it now</p>
-ci       | http://ci.deepamehta.de   | <h1>Continuous Integration</h1><p>fresh nightly builds</p>
+deep.web | dmx.base.url                        | dmx.bookmarks.bookmark_description
+site     | https://dmx.systems                 | <h1>DMX Platform</h1><p class="slogan">Cope With Complexity</p>
+plugins  | http://download.dmx.systems/plugins | <h1>DMX Plugins</h1><p class="slogan">Download Extensions</p>
+demo     | https://demo.dmx.systems            | <h1>Demo Server</h1><p>try it now</p>
+ci       | http://download.dmx.systems/ci      | <h1>Continuous Integration</h1><p>fresh nightly builds</p>
 ```
 
 
@@ -80,7 +81,7 @@ All third party components incorporated into the DMX CSV Software are licensed u
 
 **1.0.0**, Upcoming
 
-- Adapted to be compatible with DMX 5.0
+- Adapted to be compatible with DMX 5.0-beta-7
 
 Former releases were undocumented.
 

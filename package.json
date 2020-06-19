@@ -1,6 +1,6 @@
 {
   "name": "dmx-csv",
-  "version": "1.0.0-SNAPSHOT",
+  "version": "1.0.0",
   "description": "CSV Importer for DMX Platform",
   "author": "Malte Reißig <malte@dmx.berlin>",
   "license": "AGPL-3.0",

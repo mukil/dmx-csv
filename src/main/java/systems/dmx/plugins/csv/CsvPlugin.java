@@ -48,6 +48,7 @@ public class CsvPlugin extends PluginActivator {
     private static Logger log = Logger.getLogger(CsvPlugin.class.getName());
 
     public static final char SEPARATOR = '|';
+    public static final String SEPARATOR_MANY = ",";
 
     @Inject
     private FilesService files;
@@ -61,6 +62,7 @@ public class CsvPlugin extends PluginActivator {
         try {
             log.info(operation);
             StoredFile storedFile = files.storeFile(file, "/");
+            log.info("File stored. Fetching File Topic for HTTP Response.");
             return dmx.getTopic(storedFile.getFileTopicId());
         } catch (Exception e) {
             throw new RuntimeException(operation + " failed", e);
@@ -92,7 +94,7 @@ public class CsvPlugin extends PluginActivator {
             
             // 
             Map<String, Long> instancesOfUri = getTopicsByTypeWithURIPrefix(typeUri, uriPrefix);
-            Map<String, Map<String, Long>> aggrIdsByTypeUriAndValue = getPossibleAggrChilds(typeUri, childTypeUris);
+            // Map<String, Map<String, Long>> aggrIdsByTypeUriAndValue = getPossibleAggrChilds(typeUri, childTypeUris);
 
             // status informations
             int created = 0, deleted = 0, updated = 0;
@@ -111,7 +113,15 @@ public class CsvPlugin extends PluginActivator {
                 for (int c = 1; c < row.length; c++) {
                     String childTypeUri = childTypeUris.get(c);
                     String childValue = row[c];
-                    value.put(childTypeUri, childValue);
+                    if (!isMany(topicType, childTypeUri)) {
+                        value.put(childTypeUri, childValue);
+                    } else {
+                        // Fixme: deletion of all former (many) child values?
+                        String[] values = childValue.split(SEPARATOR_MANY);
+                        for (int i=0; i < values.length; i++) {
+                            value.add(childTypeUri, values[i]);
+                        }
+                    }
                 }
                 model.setChildTopicsModel(value);
 
@@ -156,6 +166,15 @@ public class CsvPlugin extends PluginActivator {
             return new ImportStatus(true, "SUCCESS", status);
         } catch (IOException e) {
             throw new RuntimeException(e) ;
+        }
+    }
+
+    private boolean isMany(TopicType topicType, String childTypeUri) {
+        CompDef model = topicType.getCompDef(childTypeUri);
+        if (model.getChildCardinalityUri().equals("dmx.core.many")) {
+            return true;
+        } else {
+            return false;
         }
     }
 

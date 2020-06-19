@@ -1,6 +1,6 @@
 # DMX CSV Importer
 
-A simple CSV importer to import and update topic entities and theif 1st-level childs into [DMX 5.0-beta-7](https://github.com/jri/deepamehta).
+A simple CSV importer to import and update topic entities and their simple 1st-level childs into [DMX 5.0-beta-7](https://github.com/jri/deepamehta).
 
 Limitations:
 
@@ -14,9 +14,10 @@ You need to create yourself a `File` topic first.
 This can either be done through issueing a `GET` request to the FileService endpoint, e.g.: `http://localhost:8080/files/file/notes.csv` or through uploading a `.csv` file interactively using the [dmx-upload-dialog](https://github.com/mukil/dmx-upload-dialog) plugin.
 
 -  Search and reveal the `notes.csv` file on a topicmap.
--  Relate the file topic to the Topic Type of your choice (the columnds in your .csv file must match the typeURIs).
+-  Associate the file topic with the _Topic Type_ you want to import topics of
+--  Note: the columns in your `.csv` file to import must match the child topic `typeURI`s.
 -  Retype the association to a `File Import` edge
--  Fire the custom `Import CSV` command on a file topic (context menu)
+-  Fire the custom `Import CSV` context command on the `notes.csv` file topic
 
 See [here](https://github.com/mukil/dmx-csv/tree/master/src/test/resources) to find an exemplary `.csv` file for importing `Note` and `Bookmark` topics.
 
@@ -57,13 +58,12 @@ ci       | http://download.dmx.systems/ci      | <h1>Continuous Integration</h1>
 
 ### Update existing topics
 
-To update all instances of a topic type just import the modified CSV file again,
-but be aware of these rules:
+As of DMX 5.0 updates are done via the core's value integration mechanisms and not (yet) by URI.
 
- * existing topic is updated by a URI match
- * row without a matching topic URI creates a new topic instance
- * existing topic instance with a type URI and no actual row match is deleted
+This also means, on subsequent imports of your CSV file, there is no deletion mechanism. Once imported topic will not get deleted. Former topics imported will (most probably) become only orphaned topics. 
 
+We opened up an issue to get back the support for deletion _and_ continous updates by URI in the dmx-platform repository:
+- See: Value integration treats an URI as an identity attribute
 
 ### CSV Format Description
 

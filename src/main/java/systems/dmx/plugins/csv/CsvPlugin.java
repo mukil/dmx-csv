@@ -114,7 +114,7 @@ public class CsvPlugin extends PluginActivator {
                     String childTypeUri = childTypeUris.get(c);
                     String childValue = row[c];
                     if (!isMany(topicType, childTypeUri)) {
-                        value.put(childTypeUri, childValue);
+                        value.set(childTypeUri, childValue);
                     } else {
                         // Fixme: deletion of all former (many) child values?
                         String[] values = childValue.split(SEPARATOR_MANY);
@@ -123,7 +123,7 @@ public class CsvPlugin extends PluginActivator {
                         }
                     }
                 }
-                model.setChildTopicsModel(value);
+                model.setChildTopics(value);
 
                 // create or update a topic
                 // this needs to be done in single transactions so referencing aggrated topics by value works

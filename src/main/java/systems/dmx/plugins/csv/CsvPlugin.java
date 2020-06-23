@@ -105,8 +105,7 @@ public class CsvPlugin extends PluginActivator {
                 String topicUri = uriPrefix + "." + row[0];
 
                 // create a fresh model
-                TopicModel model = mf.newTopicModel(typeUri);
-                model.setUri(topicUri);
+                TopicModel model = mf.newTopicModel(topicUri, typeUri);
 
                 // map all columns to composite value
                 ChildTopicsModel value = mf.newChildTopicsModel();
@@ -133,6 +132,7 @@ public class CsvPlugin extends PluginActivator {
                 DMXTransaction tx = dmx.beginTx();
                 if (topicId == null) { // create
                     object = dmx.createTopic(model);
+                    // associate importer file used
                     dmx.createAssoc(mf.newAssocModel(ASSOCIATION,
                             mf.newTopicPlayerModel(object.getId(), CHILD),
                             mf.newTopicPlayerModel(fileId, PARENT)));
@@ -142,6 +142,11 @@ public class CsvPlugin extends PluginActivator {
                     model.setId(topicId);
                     instancesOfUri.remove(topicUri);
                     dmx.updateTopic(model);
+                    // associate importer file used
+                    dmx.createAssoc(mf.newAssocModel(ASSOCIATION,
+                            mf.newTopicPlayerModel(object.getId(), CHILD),
+                            mf.newTopicPlayerModel(fileId, PARENT)));
+                    created++;
                     updated++;
                     tx.success();
                 }

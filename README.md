@@ -79,7 +79,11 @@ All third party components incorporated into the DMX CSV Software are licensed u
 
 ## Release History
 
-**1.0.0**, June 19, 2020
+**1.1.0**, Jun 24, 2020
+
+- Compatible with DMX 5.0 API
+
+**1.0.0**, Jun 19, 2020
 
 - Adapted to be compatible with DMX 5.0-beta-7
 - Allowing for imports of many values from a single column (Seperator: ``,``)

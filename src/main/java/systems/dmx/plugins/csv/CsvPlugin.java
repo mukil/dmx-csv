@@ -58,14 +58,14 @@ public class CsvPlugin extends PluginActivator {
     @Consumes("multipart/form-data")
     @Transactional
     public Topic uploadCSV(UploadedFile file) {
-        String operation = "Uploaded CSV " + file + " SUCCESSFULLY";
+        String operation = "Uploading CSV " + file;
         try {
             log.info(operation);
-            StoredFile storedFile = files.storeFile(file, "/");
-            log.info("File stored. Fetching File Topic for HTTP Response.");
+            StoredFile storedFile = files.storeFile(file, files.pathPrefix());
+            log.info("CSV File stored SUCCESFULLY");
             return dmx.getTopic(storedFile.getFileTopicId());
         } catch (Exception e) {
-            throw new RuntimeException(operation + " failed", e);
+            throw new RuntimeException(operation + " FAILED", e);
         }
     }
 

@@ -61,7 +61,7 @@ public class CsvPlugin extends PluginActivator {
         String operation = "Uploading CSV " + file;
         try {
             log.info(operation);
-            StoredFile storedFile = files.storeFile(file, files.pathPrefix());
+            StoredFile storedFile = files.storeFile(file, "/");
             log.info("CSV File stored SUCCESFULLY");
             return dmx.getTopic(storedFile.getFileTopicId());
         } catch (Exception e) {

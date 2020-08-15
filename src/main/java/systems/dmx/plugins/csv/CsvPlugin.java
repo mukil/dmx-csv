@@ -144,7 +144,7 @@ public class CsvPlugin extends PluginActivator {
                     dmx.updateTopic(model);
                     // associate importer file used
                     dmx.createAssoc(mf.newAssocModel(ASSOCIATION,
-                            mf.newTopicPlayerModel(object.getId(), CHILD),
+                            mf.newTopicPlayerModel(model.getId(), CHILD),
                             mf.newTopicPlayerModel(fileId, PARENT)));
                     created++;
                     updated++;

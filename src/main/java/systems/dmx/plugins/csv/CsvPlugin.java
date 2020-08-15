@@ -146,7 +146,6 @@ public class CsvPlugin extends PluginActivator {
                     dmx.createAssoc(mf.newAssocModel(ASSOCIATION,
                             mf.newTopicPlayerModel(model.getId(), CHILD),
                             mf.newTopicPlayerModel(fileId, PARENT)));
-                    created++;
                     updated++;
                     tx.success();
                 }

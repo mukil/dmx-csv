@@ -79,9 +79,15 @@ All third party components incorporated into the DMX CSV Software are licensed u
 
 ## Release History
 
+**1.1.1**, Aug 15, 2020
+
+- Adapted to latest changes in DMX 5.0 API
+- Fixes https://github.com/mukil/dmx-csv/issues/7
+- Fixes incorrect status count on subsequent imports (updates)
+
 **1.1.0**, Jun 24, 2020
 
-- Compatible with DMX 5.0 API
+- Compatible with upcoming DMX 5.0 API
 
 **1.0.0**, Jun 19, 2020
 

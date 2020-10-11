@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.logging.Logger;
 import javax.ws.rs.Consumes;
+import systems.dmx.core.Assoc;
 import systems.dmx.core.CompDef;
 import static systems.dmx.core.Constants.*;
 import systems.dmx.core.Topic;
@@ -49,6 +50,8 @@ public class CsvPlugin extends PluginActivator {
 
     public static final char SEPARATOR = '|';
     public static final String SEPARATOR_MANY = ",";
+
+    private static boolean DELETE_PREVIOUSLY_IMPORTED = Boolean.parseBoolean(System.getProperty("dmx.csv.delete_instances_on_update", "true"));
 
     @Inject
     private FilesService files;
@@ -115,10 +118,11 @@ public class CsvPlugin extends PluginActivator {
                     if (!isMany(topicType, childTypeUri)) {
                         value.set(childTypeUri, childValue);
                     } else {
-                        // Fixme: deletion of all former (many) child values?
+                        // Fixme: delete ref to all former (many) child values?
                         String[] values = childValue.split(SEPARATOR_MANY);
                         for (int i=0; i < values.length; i++) {
-                            value.add(childTypeUri, values[i]);
+                            log.info("Adding value \"" + values[i].trim() + "\", childType=" + childTypeUri);
+                            value.add(childTypeUri, values[i].trim());
                         }
                     }
                 }
@@ -132,56 +136,61 @@ public class CsvPlugin extends PluginActivator {
                 DMXTransaction tx = dmx.beginTx();
                 if (topicId == null) { // create
                     object = dmx.createTopic(model);
-                    // associate importer file used
-                    dmx.createAssoc(mf.newAssocModel(ASSOCIATION,
-                            mf.newTopicPlayerModel(object.getId(), CHILD),
-                            mf.newTopicPlayerModel(fileId, PARENT)));
+                    associateWithFileImported(object.getId(), fileId);
                     created++;
                     tx.success();
                 } else { // update topic and remove from map (in java memory)
                     model.setId(topicId);
                     instancesOfUri.remove(topicUri);
                     dmx.updateTopic(model);
-                    // associate importer file used
-                    dmx.createAssoc(mf.newAssocModel(ASSOCIATION,
-                            mf.newTopicPlayerModel(model.getId(), CHILD),
-                            mf.newTopicPlayerModel(fileId, PARENT)));
+                    associateWithFileImported(model.getId(), fileId);
                     updated++;
                     tx.success();
                 }
                 tx.finish();
             }
 
-            // delete the remaining instances
-            DMXTransaction tx = dmx.beginTx();
-            for (String topicUri : instancesOfUri.keySet()) {
-                Long topicId = instancesOfUri.get(topicUri);
-                dmx.deleteTopic(topicId);
-                deleted++;
+            if (DELETE_PREVIOUSLY_IMPORTED) {
+                // delete the remaining instances
+                DMXTransaction tx = dmx.beginTx();
+                for (String topicUri : instancesOfUri.keySet()) {
+                    Long topicId = instancesOfUri.get(topicUri);
+                    dmx.deleteTopic(topicId);
+                    deleted++;
+                }
+                tx.success();
+                tx.finish();   
             }
-            tx.success();
-            tx.finish();
 
             List<String> status = new ArrayList<String>();
             status.add("created: " + created);
             status.add("updated: " + updated);
             status.add("deleted: " + deleted);
-
+            log.info("CSV file import complete");
             return new ImportStatus(true, "SUCCESS", status);
         } catch (IOException e) {
             throw new RuntimeException(e) ;
         }
     }
 
+    private void associateWithFileImported(long objectId, long fileId) {
+        Assoc exists = dmx.getAssocBetweenTopicAndTopic(ASSOCIATION, objectId, fileId, CHILD, PARENT);
+        if (exists == null) {
+            dmx.createAssoc(mf.newAssocModel(ASSOCIATION,
+                mf.newTopicPlayerModel(objectId, CHILD),
+                mf.newTopicPlayerModel(fileId, PARENT)));
+        }
+    }
+
     private boolean isMany(TopicType topicType, String childTypeUri) {
         CompDef model = topicType.getCompDef(childTypeUri);
-        if (model.getChildCardinalityUri().equals("dmx.core.many")) {
+        if (model.getChildCardinalityUri().equals(MANY)) {
             return true;
         } else {
             return false;
         }
     }
-
+    
     /**
      * get all possible aggregation instances and hash them by typeUri and value
      * 
@@ -193,7 +202,7 @@ public class CsvPlugin extends PluginActivator {
         TopicType topicType = dmx.getTopicType(typeUri);
         Map<String, Map<String, Long>> aggrIdsByTypeUriAndValue = new HashMap<String, Map<String, Long>>();
         for (CompDef associationDefinition : topicType.getCompDefs()) {
-            if (associationDefinition.getTypeUri().equals("dmx.core.composition_def")) {
+            if (associationDefinition.getTypeUri().equals(COMPOSITION_DEF)) {
                 String childTypeUri = associationDefinition.getChildTypeUri();
                 log.info("childTypeUri: " + childTypeUri);
                 if (childTypeUris.contains(childTypeUri)) {

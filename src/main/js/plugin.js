@@ -32,7 +32,7 @@ export default ({dm5, store, axios: http, Vue}) => ({
       if (isLoggedIn && topic.typeUri === 'dmx.files.file') {
         // 1) Check configuration
         let hasTargetTypeConfigured = true
-        dm5.restClient.getTopicRelatedTopics(topic.id, {
+        dm5.rpc.getTopicRelatedTopics(topic.id, {
           assocTypeUri: "dmx.csv.file_import", othersTopicTypeUri: "dmx.core.topic_type"})
                 .then(response => {
                   hasTargetTypeConfigured = (response.length > 0) ? true : false

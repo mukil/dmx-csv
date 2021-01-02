@@ -79,6 +79,10 @@ All third party components incorporated into the DMX CSV Software are licensed u
 
 ## Release History
 
+**1.2.0**, Jan 02, 2020
+
+- Compatible with DMX 5.1 API
+
 **1.1.1**, Aug 15, 2020
 
 - Adapted to latest changes in DMX 5.0 API

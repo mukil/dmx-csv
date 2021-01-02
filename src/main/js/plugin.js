@@ -1,4 +1,4 @@
-export default ({dm5, store, axios: http, Vue}) => ({
+export default ({dmx, store, axios: http, Vue}) => ({
 
   init () {
     store.dispatch("registerUploadHandler", {
@@ -32,7 +32,7 @@ export default ({dm5, store, axios: http, Vue}) => ({
       if (isLoggedIn && topic.typeUri === 'dmx.files.file') {
         // 1) Check configuration
         let hasTargetTypeConfigured = true
-        dm5.restClient.getTopicRelatedTopics(topic.id, {
+        dmx.rpc.getTopicRelatedTopics(topic.id, {
           assocTypeUri: "dmx.csv.file_import", othersTopicTypeUri: "dmx.core.topic_type"})
                 .then(response => {
                   hasTargetTypeConfigured = (response.length > 0) ? true : false

@@ -1,7 +1,7 @@
 export default ({dmx, store, axios: http, Vue}) => ({
 
   init () {
-    store.dispatch("registerUploadHandler", {
+    store.dispatch("upload/registerUploadHandler", {
       mimeTypes:  ["application/vnd.ms-excel", "text/csv"], // 1. Win 10 FFox CSV 2. Other CSV
       action: "/csv/import",
       selected: function(file, fileList) {

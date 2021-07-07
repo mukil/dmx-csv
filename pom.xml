@@ -13,14 +13,14 @@
     <parent>
         <groupId>systems.dmx</groupId>
         <artifactId>dmx-plugin</artifactId>
-        <version>5.2-SNAPSHOT</version>
+        <version>5.2</version>
     </parent>
 
     <dependencies>
         <dependency>
             <groupId>systems.dmx</groupId>
             <artifactId>dmx-files</artifactId>
-            <version>5.2-SNAPSHOT</version>
+            <version>5.2</version>
         </dependency>
         <dependency>
             <groupId>net.sf.opencsv</groupId>

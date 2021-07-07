@@ -79,7 +79,13 @@ All third party components incorporated into the DMX CSV Software are licensed u
 
 ## Release History
 
-**1.2.0**, Jan 02, 2020
+**1.1..3**, Upcoming
+
+- Compatible with DMX 5.2 API
+- Added configuration option: `<dmx.csv.delete_instances_on_update>false</dmx.csv.delete_instances_on_update>` (pom.xml style)
+- Removed transaction-ism per row
+
+**1.1.2**, Jan 02, 2020
 
 - Compatible with DMX 5.1 API
 

@@ -31,16 +31,16 @@ import systems.dmx.files.UploadedFile;
 /**
  * TODO: Update
  * A plugin to map lines of a .CSV file (TAB-separated) to instances of a simple Topic Type.
- * Where simple means that the Topic Type Definition must not have another _Composite_ as child (levels of depth
+ * Where simple means that the Topic Type Definition must not have another Entity_ as child (levels of depth
  * supported not more than one) but  can have many simple child Topic Types (e.g. Text, Number, Boolean, HTML).<br/><br/>
  *
- * Note 1: Updates of topics by URI only are currently not supported by the new DMX 5.0-beta-7<br/><br/>
+ * Note 1: Updates of topics by URI only are currently not supported as of DMX 5.0+<br/><br/>
  *
  * Note 2: During the import process, simple child topics of datatype "text, number and boolean value will be matched by value
  * and Topic Type URI.
  *
- * @author Malte Rei&szlig;ig (<a href="mailto:malte@mikromedia.de">Email</a>, Danny Graf, 2012-2020
- * @version 1.0.0-SNAPSHOT
+ * @author Malte Rei&szlig;ig (<a href="mailto:malte@mikromedia.de">Email</a>, 2012-2021; Danny Graf, 2012
+ * @version 1.1.3-SNAPSHOT
  */
 @Path("csv")
 @Produces(MediaType.APPLICATION_JSON)
@@ -49,7 +49,7 @@ public class CsvPlugin extends PluginActivator {
     private static Logger log = Logger.getLogger(CsvPlugin.class.getName());
 
     public static final char SEPARATOR = '|';
-    public static final String SEPARATOR_MANY = ",";
+    public static final String SEPARATOR_MANY = ";";
 
     private static boolean DELETE_PREVIOUSLY_IMPORTED = Boolean.parseBoolean(System.getProperty("dmx.csv.delete_instances_on_update", "true"));
 
@@ -74,6 +74,7 @@ public class CsvPlugin extends PluginActivator {
 
     @POST
     @Path("import/{fileId}")
+    @Transactional
     public ImportStatus importCsv(@PathParam("fileId") long fileId) {
         try {
 
@@ -116,50 +117,59 @@ public class CsvPlugin extends PluginActivator {
                     String childTypeUri = childTypeUris.get(c);
                     String childValue = row[c];
                     if (!isMany(topicType, childTypeUri)) {
-                        value.set(childTypeUri, childValue);
+                        if (childValue.startsWith("#ref_uri:")) {
+                            String childTopicUri = childValue.substring(9);
+                            if (childTopicUri.endsWith(";")) {
+                                childTopicUri = childValue.substring(9, childValue.length()-1);
+                            }
+                            value.setRef(childTypeUri, childTopicUri);
+                        } else {
+                            value.set(childTypeUri, childValue);
+                        }
                     } else {
                         // Fixme: delete ref to all former (many) child values?
                         String[] values = childValue.split(SEPARATOR_MANY);
                         for (int i=0; i < values.length; i++) {
-                            log.info("Adding value \"" + values[i].trim() + "\", childType=" + childTypeUri);
-                            value.add(childTypeUri, values[i].trim());
+                            if (values[i].startsWith("#ref_uri:")) {
+                                log.info("Parsing ref_uri value \"" + values[i] + "\" for childTypeUri=" + childTypeUri);
+                                String childTopicUri = values[i].trim().substring(9);
+                                if (childTopicUri.endsWith(";")) {
+                                    childTopicUri = values[i].trim().substring(9, childValue.length()-1);
+                                }
+                                log.info("Referencing value by URI \"" + childTopicUri + "\", childType=" + childTypeUri);
+                                value.addRef(childTypeUri, childTopicUri);
+                            } else {
+                                log.info("Adding value \"" + values[i].trim() + "\", childType=" + childTypeUri);
+                                value.add(childTypeUri, values[i].trim());
+                            }
                         }
                     }
                 }
                 model.setChildTopics(value);
 
                 // create or update a topic
-                // this needs to be done in single transactions so referencing aggrated topics by value works
-                // when they come all in one .csv file
                 Long topicId = instancesOfUri.get(topicUri);
                 Topic object = null;
-                DMXTransaction tx = dmx.beginTx();
                 if (topicId == null) { // create
                     object = dmx.createTopic(model);
                     associateWithFileImported(object.getId(), fileId);
                     created++;
-                    tx.success();
                 } else { // update topic and remove from map (in java memory)
                     model.setId(topicId);
                     instancesOfUri.remove(topicUri);
                     dmx.updateTopic(model);
                     associateWithFileImported(model.getId(), fileId);
                     updated++;
-                    tx.success();
                 }
-                tx.finish();
             }
 
             if (DELETE_PREVIOUSLY_IMPORTED) {
                 // delete the remaining instances
-                DMXTransaction tx = dmx.beginTx();
                 for (String topicUri : instancesOfUri.keySet()) {
                     Long topicId = instancesOfUri.get(topicUri);
                     dmx.deleteTopic(topicId);
                     deleted++;
                 }
-                tx.success();
-                tx.finish();   
             }
 
             List<String> status = new ArrayList<String>();

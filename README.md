@@ -79,11 +79,13 @@ All third party components incorporated into the DMX CSV Software are licensed u
 
 ## Release History
 
-**1.1..3**, Upcoming
+**1.1.3**, Upcoming
 
 - Compatible with DMX 5.2 API
 - Added configuration option: `<dmx.csv.delete_instances_on_update>false</dmx.csv.delete_instances_on_update>` (pom.xml style)
-- Removed transaction-ism per row
+- Removed transactions per row
+- Support for referencing entity topics from import data by URI (use the prefix `#ref_uri:` and then follow up with the entity URI)
+- Note: Many separator to represent multiple values in one column has change to ``;``!
 
 **1.1.2**, Jan 02, 2020
 

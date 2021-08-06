@@ -23,7 +23,6 @@ import systems.dmx.core.model.TopicModel;
 import systems.dmx.core.osgi.PluginActivator;
 import systems.dmx.core.service.Inject;
 import systems.dmx.core.service.Transactional;
-import systems.dmx.core.storage.spi.DMXTransaction;
 import systems.dmx.files.FilesService;
 import systems.dmx.files.StoredFile;
 import systems.dmx.files.UploadedFile;
@@ -50,6 +49,7 @@ public class CsvPlugin extends PluginActivator {
 
     public static final char SEPARATOR = '|';
     public static final String SEPARATOR_MANY = ";";
+    private static final String REF_URI_PREFIX = "#ref_uri:";
 
     private static boolean DELETE_PREVIOUSLY_IMPORTED = Boolean.parseBoolean(System.getProperty("dmx.csv.delete_instances_on_update", "true"));
 
@@ -117,7 +117,7 @@ public class CsvPlugin extends PluginActivator {
                     String childTypeUri = childTypeUris.get(c);
                     String childValue = row[c];
                     if (!isMany(topicType, childTypeUri)) {
-                        if (childValue.startsWith("#ref_uri:")) {
+                        if (childValue.startsWith(REF_URI_PREFIX)) {
                             String childTopicUri = childValue.substring(9);
                             if (childTopicUri.endsWith(";")) {
                                 childTopicUri = childValue.substring(9, childValue.length()-1);

@@ -1,6 +1,6 @@
 # DMX CSV Importer
 
-A simple CSV importer to import and update topic entities and their simple 1st-level childs into [DMX 5.0-beta-7](https://github.com/jri/deepamehta).
+A simple CSV importer to import and update topic entities and their simple 1st-level childs into [DMX 5.2](https://github.com/dmx-systems/dmx-platform).
 
 Limitations:
 
@@ -29,8 +29,8 @@ At some point in the future you may find the latest versions of this plugin at [
 
 ## Requirements
 
- * [DMX](https://github.com/jri/deepamehta) 5.0-beta-7
- * Write access to `dmx.filerepo.path` (see DM4 `config.properties` file)
+ * [DMX](https://github.com/dmx-systems/dmx-platform) 5.2+
+ * Write access to `dmx.filerepo.path` (see DMX platform `config.properties` file)
 
 
 ### Import some topics from a CSV file
@@ -54,16 +54,6 @@ plugins  | http://download.dmx.systems/plugins | <h1>DMX Plugins</h1><p class="s
 demo     | https://demo.dmx.systems            | <h1>Demo Server</h1><p>try it now</p>
 ci       | http://download.dmx.systems/ci      | <h1>Continuous Integration</h1><p>fresh nightly builds</p>
 ```
-
-
-### Update existing topics
-
-As of DMX 5.0 updates are done via the core's value integration mechanisms and not (yet) by URI.
-
-This also means, on subsequent imports of your CSV file, there is no deletion mechanism. Once imported topic will not get deleted. Former topics imported will (most probably) become only orphaned topics. 
-
-We opened up an issue to get back the support for deletion _and_ continous updates by URI in the dmx-platform repository:
-- See: Value integration treats an URI as an identity attribute
 
 ### CSV Format Description
 

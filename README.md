@@ -71,7 +71,7 @@ All third party components incorporated into the DMX CSV Software are licensed u
 
 **1.3**, Nov 07, 2021
 
-- Fixes: Import of multiple `#ref_uri: ...; #ref_uri: ....;`
+- Fixes: Import of _multiple_ `#ref_uri: URI; #ref_uri: URI;` now works (forgot trimming)
 
 **1.2**, Aug 06, 2021
 

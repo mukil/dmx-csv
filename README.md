@@ -69,6 +69,10 @@ All third party components incorporated into the DMX CSV Software are licensed u
 
 ## Release History
 
+**1.3**, Nov 07, 2021
+
+- Fixes: Import of multiple `#ref_uri: ...; #ref_uri: ....;`
+
 **1.2**, Aug 06, 2021
 
 - Compatible with DMX 5.2 API

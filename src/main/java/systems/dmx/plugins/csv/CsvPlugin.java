@@ -115,7 +115,7 @@ public class CsvPlugin extends PluginActivator {
                 ChildTopicsModel value = mf.newChildTopicsModel();
                 for (int c = 1; c < row.length; c++) {
                     String childTypeUri = childTypeUris.get(c);
-                    String childValue = row[c];
+                    String childValue = row[c].trim();
                     if (!isMany(topicType, childTypeUri)) {
                         if (childValue.startsWith(REF_URI_PREFIX)) {
                             String childTopicUri = childValue.substring(9);
@@ -130,17 +130,18 @@ public class CsvPlugin extends PluginActivator {
                         // Fixme: delete ref to all former (many) child values?
                         String[] values = childValue.split(SEPARATOR_MANY);
                         for (int i=0; i < values.length; i++) {
-                            if (values[i].startsWith("#ref_uri:")) {
-                                log.info("Parsing ref_uri value \"" + values[i] + "\" for childTypeUri=" + childTypeUri);
-                                String childTopicUri = values[i].trim().substring(9);
+                            String trimmedValue = values[i].trim();
+                            if (trimmedValue.startsWith("#ref_uri:")) {
+                                log.info("Parsing ref_uri value \"" + trimmedValue + "\" for childTypeUri=" + childTypeUri);
+                                String childTopicUri = trimmedValue.substring(9);
                                 if (childTopicUri.endsWith(";")) {
-                                    childTopicUri = values[i].trim().substring(9, childValue.length()-1);
+                                    childTopicUri = trimmedValue.substring(9, childValue.length()-1);
                                 }
                                 log.info("Referencing value by URI \"" + childTopicUri + "\", childType=" + childTypeUri);
                                 value.addRef(childTypeUri, childTopicUri);
                             } else {
-                                log.info("Adding value \"" + values[i].trim() + "\", childType=" + childTypeUri);
-                                value.add(childTypeUri, values[i].trim());
+                                log.info("Adding value \"" + trimmedValue + "\", childType=" + childTypeUri);
+                                value.add(childTypeUri, trimmedValue);
                             }
                         }
                     }
